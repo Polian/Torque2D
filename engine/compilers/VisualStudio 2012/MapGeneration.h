@@ -13,6 +13,9 @@
 #include "perlinNoise/simplexnoise.h"
 #endif
 
+#ifndef _VECTOREXT_H
+#include "collection\vectorQueue.h"
+#endif
 
 #include "graphics/VoronoiDiagramGenerator.h"
 
@@ -27,6 +30,12 @@ public:
 	virtual bool onAdd();
 
 	static void initPersistFields();
+
+	void assignBiomes(float x1, float y1, float x2, float y2, float* xValues, float* yValues, int vertcount);
+	void assignLandBiome(char* vert);
+	//S32 compare(char * const  *a, char* const  *b);
+	/*void fillOcean(HashTable<char*, float*> DEdges, float x, float y, int vertCount, float* xValues, float* yValues);
+	char* findVert(float x, float y, int vertCount, float* xValues, float* yValues);*/
 
 	DECLARE_CONOBJECT(Island);
 };

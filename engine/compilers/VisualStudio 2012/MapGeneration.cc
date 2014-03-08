@@ -14,6 +14,14 @@ Island::Island()
 	//vertices = NULL;
 }
 
+S32 compare(char * const  *a, char* const  *b)
+{
+	float la=0, lb=0;
+	la = strtof(*a, NULL);
+	lb = strtof(*b, NULL);
+	return (la - lb);
+}
+
 bool Island::onAdd()
 {
 	// Fail if the parent fails.  
@@ -22,27 +30,37 @@ bool Island::onAdd()
 
 	// Do some work here.
 	Taml taml;
-	SimSet set, verts, corners, delaunay;
+	SimSet set, verts, corners, delaunay, tris;
 	
 
 	//register the set of verticies and the set of corners.
 	verts.registerObject("vertSet");
 	corners.registerObject("cornerSet");
 	delaunay.registerObject("delaunaySet");
+	tris.registerObject("triSet");
 	
 
 	//set the area and vert. count
-	const int vertCount = 1000;
+	const int vertCount = 100;
 	F32 area = 500;
 
 	//create array of vert. simObjects that will store the vert information and be output to file.
 	SimObject tmpVert[vertCount];
 	SimObject tmpCorner[3*vertCount]; // there are supposedly 3x as many edges as verts.  NOTE: The actual bound is (3*v-6)
 	SimObject tmpDelaunay[3 * vertCount];
+	SimObject tmpTri[6 * vertCount];
 
-	HashMap<Point2D, SimObject*> vertLookup;
-	Point2D vertPoint;
-	SimObject* hashedVert;
+	HashTable<char*, float*> DEdges;
+	HashTable<char*, float*>::iterator iter;
+	Queue<char*> fillQueue;
+	float* point;
+	char* queueObject;
+
+	bool adjCells[vertCount][vertCount];
+	Point2F DPoint[vertCount];
+
+	Vector<char*> distanceVector;
+	char* dist;
 
 	float x1, y1, x2, y2;
 	float distanceToVert = 0;
@@ -59,11 +77,15 @@ bool Island::onAdd()
 	float xValues[vertCount];
 	float yValues[vertCount];
 	float noise[vertCount];
-	char tempStr[100], nameStr[15], noiseStr[100];
+	float biomeNoise[vertCount];
+	char tempStr[100], nameStr[15], noiseStr[100], tempKey[100];
 	int counter = 0, edgeCount = 0, dCount = 0;
 	float r = 0; // radius from center of map to given point
 	float seed = mRandF(0, 100); // the seed for our noise function
 
+	//---------------------------
+	//-----Generate Vertices-------
+	//-------------------------
 	//generate random vertices and save the results to file.
 	for (int i = 0; i < vertCount; ++i){
 		// ---vert calculations---
@@ -72,7 +94,9 @@ bool Island::onAdd()
 		yValues[i] = mRandF(-area, area);
 
 		//generate noise
-		noise[i] = scaled_octave_noise_3d(8, 0.0, 0.005, 0.0, 1.0, xValues[i], yValues[i], seed);
+		noise[i] = scaled_octave_noise_3d(8.0, 0.0, 0.005, 0.0, 1.0, xValues[i], yValues[i], seed);
+		biomeNoise[i] = scaled_octave_noise_3d(8.0, 0.0, 0.05, 0.0, 1.0, xValues[i], yValues[i], seed);
+		//biomeNoise[i] = noise[i];
 
 		//make noise more "island-like"
 		r = mSqrt(xValues[i] * xValues[i] + yValues[i] * yValues[i]) / area;
@@ -81,6 +105,15 @@ bool Island::onAdd()
 		}
 		else{
 			noise[i] = mPow(noise[i] * exp(-mPow(r / 4, 2)) - mPow(r, 2), 2);
+		}
+
+		// generate biome noise to be a smaller island
+		r = mSqrt(xValues[i] * xValues[i] + yValues[i] * yValues[i]) / (area -(area*0.35));
+		if (biomeNoise[i] * exp(-mPow(r / 4, 2)) - mPow(r, 2) < 0){
+			biomeNoise[i] = 0;
+		}
+		else{
+			biomeNoise[i] = mPow(biomeNoise[i] * exp(-mPow(r / 4, 2)) - mPow(r, 2), 2);
 		}
 
 		// create a string that contains the x value and the y value of the current vert.
@@ -94,29 +127,198 @@ bool Island::onAdd()
 		tmpVert[i].registerObject(nameStr);
 		tmpVert[i].setDataField("Vertex", NULL, tempStr);
 		tmpVert[i].setDataField("Elevation", NULL, noiseStr);
+		tmpVert[i].setDataField("Shore", NULL, "1");
 
+		sprintf(noiseStr, "%f", biomeNoise[i]);
+		tmpVert[i].setDataField("LandNoise", NULL, noiseStr);
+		
 		// add the generated object to our vert simSet.
 		verts.addObject(Sim::findObject(nameStr));
-
-		//add the vert to the hashmap
-		vertPoint.x = xValues[i];
-		vertPoint.y = yValues[i];
-		vertLookup.insert(vertPoint, Sim::findObject(nameStr));
 	}
 
 	
 
-
+	//---------------------------
+	//-----Generate Voronoi-------
+	//-------------------------
 	// Generate voronoi diagram from verts. generated above.
 	VoronoiDiagramGenerator voronoi;
 	voronoi.setGenerateDelaunay(true);
-	voronoi.generateVoronoi(xValues, yValues, vertCount, -area, area, -area, area, 2, true);
+	voronoi.generateVoronoi(xValues, yValues, vertCount, -area, area, -area, area, 0, true);
 	
 	voronoi.resetIterator();
 	voronoi.resetDelaunayEdgesIterator();
+	float x = 0, y = 0;
+
+	//---------------------------
+	//-----Delaunay Edges-------
+	//-------------------------
+	while (voronoi.getNextDelaunay(x1, y1, x2, y2)){
+		// populate hashtable which will later be used to assign biomes
+
+		sprintf(tempStr, "%f %f", x1, y1);
+		point = new float[4];
+
+		point[0] = x1;
+		point[1] = y1;
+		point[2] = x2;
+		point[3] = y2;
+
+		DEdges.insertUnique(tempStr, point);
+		/*int count = 0;
+		for (iter = DEdges.find(tempStr); count < DEdges.count(tempStr); ++iter) {
+			Con::printf("%f %f", iter.getValue()[2], iter.getValue()[3]);
+			++count;
+		}*/
+
+		sprintf(tempStr, "%f %f", x2, y2);
+		point = new float[4];
+
+		point[0] = x2;
+		point[1] = y2;
+		point[2] = x1;
+		point[3] = y1;
+
+		DEdges.insertUnique(tempStr, point);
+		/*count = 0;
+		for (iter = DEdges.find(tempStr); count < DEdges.count(tempStr); ++iter) {
+			Con::printf("%f %f", iter.getValue()[2], iter.getValue()[3]);
+			++count;
+		}*/
+
+		// save Delaunay edges in a set
+		sprintf(tempStr, "%f %f %f %f", x1, y1, x2, y2);
+		
+		sprintf(nameStr, "delaunay%d", dCount);
+		tmpDelaunay[dCount].registerObject(nameStr);
+		tmpDelaunay[dCount].setDataField("DelaunayEdge", NULL, tempStr);
+
+		delaunay.addObject(Sim::findObject(nameStr));
+
+		dCount++;
+
+		assignBiomes(x1, y1, x2, y2, xValues, yValues, vertCount);
+
+	}
+
+	//---------------------------
+	//-----Biome Assignment-------
+	//-------------------------
+	//sprintf(tempStr, "%f %f", x1, y1);
+	Con::printf("%d", DEdges.size());
+	//int count = 0;
+	//for (iter = DEdges.begin(); count < DEdges.size(); ++iter) {
+	//	Con::printf("%f %f", iter.getValue()[2], iter.getValue()[3]);
+	//	++count;
+	//	//sprintf(tempStr, "%f %f", iter.getValue()[0], iter.getValue()[1]);
+	//	Con::printf("%d", count);
+	//	//DEdges.erase(tempStr);
+	//}
+
+	//int count = DEdges.count(tempStr);
+	//for (int i = 0; i < count; ++i){
+	//	Con::printf("%d", DEdges.count(tempStr));
+	//	Con::printf("%f %f", DEdges.find(tempStr).operator++(i).getValue()[2], DEdges.find(tempStr).operator++(i).getValue()[3]);
+	//	//DEdges.find(tempStr).operator++();
+	//}
+	
+	//fillOcean(DEdges, x1, y1, vertCount, xValues, yValues);
+
+	char* endPtr;
+	char name[100];
+	
+	Con::printf("%d %d", DEdges.size(), DEdges.tableSize());
+
+	for (int i = 0; i < vertCount; ++i){
+		if (mFabs(xValues[i] - x1) < 0.00001 ){
+			if (mFabs(yValues[i] - y1) < 0.00001){
+				sprintf(tempStr, "vert%d %f %f", i, x2, y2);
+			}
+		}
+		
+	}
+
+	fillQueue.enqueue(tempStr);
 
 	
+	
 
+	while (fillQueue.size() != 0){
+		/*Con::printf("-------");
+		for (int i = 0; i < fillQueue.size(); ++i){
+			Con::printf("%s", fillQueue[i]);
+		}
+		Con::printf("===============");*/
+		//dequeue an element from the queue
+		endPtr = strtok(fillQueue[0], " ");
+		sprintf(name, "%s", endPtr);
+
+		endPtr = strtok(NULL, " ");
+		x = dAtof(endPtr);
+
+		endPtr = strtok(NULL, " ");
+		y = dAtof(endPtr);
+		
+		
+
+		fillQueue.dequeue();
+
+		if (strcmp(Sim::findObject(name)->getDataField("Elevation", NULL), "0.000000") == 0){
+		//if (strcmp(Sim::findObject(name)->getDataField("Biome", NULL), "Ocean") == 0){
+			//Con::printf("set cell to ocean");
+			Sim::findObject(name)->setDataField("Biome", NULL, "Ocean2");
+
+			//Con::printf("found object and set biome data");
+			
+			sprintf(tempStr, "%f %f", x, y);
+			//sprintf(tempKey, "%s", tempStr);
+			//Con::printf("assign key value");
+			counter = 0;
+			//Con::printf("========= %f %f", x, y);
+
+			//Con::printf("------------");
+			//Con::printf("---- %s", tempStr);
+			for (iter = DEdges.find(tempStr); counter < DEdges.count(tempStr); ++iter){
+
+				//Con::printf("%f %f", iter.getValue()[2], iter.getValue()[3]);
+				for (int j = 0; j < vertCount; ++j){
+					/*if (yValues[j] > 0){
+						Con::printf("%f, %f ||| %f", yValues[j], xValues[j], DEdges.find(tempStr).getValue()[3]);
+					}*/
+					if (mFabs(xValues[j] - iter.getValue()[2]) < 0.000001){
+						//Con::printf("%f, %f", xValues[j], yValues[j]);
+						if (mFabs(yValues[j] - iter.getValue()[3]) < 0.000001){
+								
+							queueObject = new char[100];
+							sprintf(queueObject, "vert%d %f %f", j, iter.getValue()[2], iter.getValue()[3]);
+							break;
+						}
+						else{
+							Con::printf("not found");
+						}
+							
+					}
+				}
+				//Con::printf("Queue: %d", fillQueue.size());
+				fillQueue.enqueue(queueObject);
+				//sprintf(tempStr, "%s", tempKey);
+				++counter;
+				//DEdges.erase(DEdges.find(tempStr));
+			}
+			//when it checks adjacent nodes based on elevation, it will loop infinitely unless we delete used nodes
+			DEdges.erase(tempStr); 
+			//Con::printf("===============");
+
+			
+		}
+
+		
+		
+	}
+
+	//---------------------------
+	//-----Edges-------
+	//-------------------------
 	// get all the edges in the voronoi diagram.
 	while (voronoi.getNext(x1, y1, x2, y2)){
 		
@@ -134,8 +336,8 @@ bool Island::onAdd()
 		// then register the object with the name,
 		// then set the "Edge" field to the current edge
 		sprintf(nameStr, "edge%d", edgeCount);
-		tmpCorner[edgeCount].registerObject(nameStr);
-		tmpCorner[edgeCount].setDataField("Edge", NULL, tempStr);
+		//tmpCorner[edgeCount].registerObject(nameStr);
+		//tmpCorner[edgeCount].setDataField("Edge", NULL, tempStr);
 
 		// ------Cell creation ------
 		// find the closest two verts to the midpoint of the current edge.
@@ -148,36 +350,90 @@ bool Island::onAdd()
 
 		index = 0;
 		index2 = 0;
-		
+
 		for (int i = 0; i < vertCount; i++){
 			distanceToVert = mSqrt(mPow(midpointX - xValues[i], 2) + mPow(midpointY - yValues[i], 2));
-
+			sprintf(tempStr, "%f %f %f", distanceToVert, xValues[i], yValues[i]);
+			dist = new char[50];
+			sprintf(dist, "%s", tempStr);
+			distanceVector.setSize(distanceVector.size() + 1);
+			distanceVector[i] = dist;
 			//is the current distance less than the previously smallest distance?
-			if (distanceToVert <= min){
-				//closest vert
-				min = distanceToVert;
-				index = i;
-				angle1a =  mAtan(x1 - xValues[i], y1 - yValues[i]);
-				angle1b =  mAtan(x2 - xValues[i], y2 - yValues[i]);
+			//if (distanceToVert <= min){
+			//	//closest vert
+			//	min = distanceToVert;
+			//	index = i;
+			//	angle1a =  mAtan(x1 - xValues[i], y1 - yValues[i]);
+			//	angle1b =  mAtan(x2 - xValues[i], y2 - yValues[i]);
 
-				//save the cells adjacent to this edge
-				sprintf(tempStr, "%d", index);
-				tmpCorner[edgeCount].setDataField("Cell1", NULL, tempStr);
-				
+			//	//save the cells adjacent to this edge
+			//	sprintf(tempStr, "%d", index);
+			//	tmpCorner[edgeCount].setDataField("Cell1", NULL, tempStr);
+			//	
 
-				//save the angle of each of the edge verts to the cell vert
-				sprintf(tempStr, "%f", angle1a);
-				tmpCorner[edgeCount].setDataField("Angle1a", NULL, tempStr);
-				sprintf(tempStr, "%f", angle1b);
-				tmpCorner[edgeCount].setDataField("Angle1b", NULL, tempStr);
+			//	//save the angle of each of the edge verts to the cell vert
+			//	sprintf(tempStr, "%f", angle1a);
+			//	tmpCorner[edgeCount].setDataField("Angle1a", NULL, tempStr);
+			//	sprintf(tempStr, "%f", angle1b);
+			//	tmpCorner[edgeCount].setDataField("Angle1b", NULL, tempStr);
+			//	
+			//	sprintf(tempStr, "%f %f", midpointX, midpointY);
+			//	tmpCorner[edgeCount].setDataField("Midpoint", NULL, tempStr);
+			//}
+		}
+
+
+		distanceVector.sort(compare);
+
+		//set all the appropriate fields for the first triangle
+		strtof(distanceVector[0], &endPtr);
+		x = strtof(endPtr, &endPtr);
+		y = strtof(endPtr, NULL);
+
+		sprintf(tempStr, "%f %f %f %f %f %f", x1, y1, x2, y2, x, y);
+		tmpTri[edgeCount*2].setDataField("Triangle", NULL, tempStr);
+
+		for (int i = 0; i < vertCount; ++i){
+			if (mFabs(xValues[i] - x) < 0.0001 && mFabs(yValues[i] - y) < 0.0001){
+					sprintf(tempStr, "vert%d", i);
+
+					tmpTri[edgeCount * 2].setDataField("Biome", NULL, Sim::findObject(tempStr)->getDataField("Biome", NULL));
+					sprintf(nameStr, "Tri%d", edgeCount * 2);
+					tmpTri[edgeCount * 2].registerObject(nameStr);
+					tris.addObject(Sim::findObject(nameStr));
+					break;
 				
-				sprintf(tempStr, "%f %f", midpointX, midpointY);
-				tmpCorner[edgeCount].setDataField("Midpoint", NULL, tempStr);
+			}
+		}
+		
+
+		strtof(distanceVector[1], &endPtr);
+		x = strtof(endPtr, &endPtr);
+		y = strtof(endPtr, NULL);
+
+		sprintf(tempStr, "%f %f %f %f %f %f", x1, y1, x2, y2, x, y);
+		tmpTri[edgeCount * 2 + 1].setDataField("Triangle", NULL, tempStr);
+
+		for (int i = 0; i < vertCount; ++i){
+			if (mFabs(xValues[i] - x) < 0.00001 && mFabs(yValues[i] - y) < 0.00001){
+				sprintf(tempStr, "vert%d", i);
+
+				tmpTri[(edgeCount * 2) + 1].setDataField("Biome", NULL, Sim::findObject(tempStr)->getDataField("Biome", NULL));
+				sprintf(nameStr, "Tri%d", (edgeCount * 2) + 1);
+				tmpTri[(edgeCount * 2) + 1].registerObject(nameStr);
+				tris.addObject(Sim::findObject(nameStr));
+				break;
 			}
 		}
 
+		
+
+
+		distanceVector.clear();
+		distanceVector.setSize(0);
+
 		//find the second closest cell
-		for (int i = 0; i < vertCount; i++){
+		/*for (int i = 0; i < vertCount; i++){
 			distanceToVert = mSqrt(mPow(midpointX - xValues[i], 2) + mPow(midpointY - yValues[i], 2));
 
 			if (distanceToVert <= min2 && distanceToVert != min){
@@ -195,49 +451,13 @@ bool Island::onAdd()
 				sprintf(tempStr, "%f", angle2b);
 				tmpCorner[edgeCount].setDataField("Angle2b", NULL, tempStr);
 			}
-		}
+		}*/
 
 		// Add the current object to the corners simSet
-		corners.addObject(Sim::findObject(nameStr));
+		//corners.addObject(Sim::findObject(nameStr));
+		
 		
 	}
-
-	
-
-
-	//---------------------------
-	//-----Delaunay Edges-------
-	//-------------------------
-	while (voronoi.getNextDelaunay(x1, y1, x2, y2)){
-
-		sprintf(tempStr, "%f %f %f %f", x1, y1, x2, y2);
-
-		sprintf(nameStr, "delaunay%d", dCount);
-		tmpDelaunay[dCount].registerObject(nameStr);
-		tmpDelaunay[dCount].setDataField("DelaunayEdge", NULL, tempStr);
-
-		delaunay.addObject(Sim::findObject(nameStr));
-
-		dCount++;
-
-		// check if current vert borders water verts.
-		/*vertPoint.x = x1;
-		vertPoint.y = y1;
-		hashedVert = vertLookup.find(vertPoint).getValue();
-		Con::printf("test %s", hashedVert->getDataField("Elevation", NULL));
-		if (hashedVert->getDataField("Elevation", NULL) == 0){
-			hashedVert->setDataField("Ocean", NULL, "1");
-			vertLookup.erase(vertPoint);
-			vertLookup.insert(vertPoint, hashedVert);
-		}
-		else{
-			hashedVert->setDataField("Ocean", NULL, "0");
-			vertLookup.erase(vertPoint);
-			vertLookup.insert(vertPoint, hashedVert);
-		}*/
-		
-	}
-
 
 	//----------------------------------------------------
 	//--------TAML Writing and Un-registration-----------
@@ -250,12 +470,16 @@ bool Island::onAdd()
 	}
 	delaunay.unregisterObject();
 
+	delete[] point;
+	delete [] queueObject;
+	delete [] dist;
+
 
 	// write the CORNERS simSet to file and unregister containers.
-	taml.write(Sim::findObject("cornerSet"), "modules/LightModule/1/MapData/Edges.taml");
+	/*taml.write(Sim::findObject("cornerSet"), "modules/LightModule/1/MapData/Edges.taml");
 	for (int i = 0; i < counter; ++i){
 		tmpCorner[i].unregisterObject();
-	}
+	}*/
 	corners.unregisterObject();
 
 
@@ -265,6 +489,13 @@ bool Island::onAdd()
 		tmpVert[i].unregisterObject();
 	}
 	verts.unregisterObject();
+
+	// write the TRI simSet to file and unregister containers.
+	taml.write(Sim::findObject("triSet"), "modules/LightModule/1/MapData/Triangles.taml");
+	for (int i = 0; i < counter*2; ++i){
+		tmpTri[i].unregisterObject();
+	}
+	tris.unregisterObject();
 
 	
 
@@ -285,5 +516,173 @@ void Island::initPersistFields()
 	//addField("Vertices", TypeS32, Offset(vertices, Island), "");
 	//addField("Corners", TypeString, Offset(corners, Island), "List of corners.");
 }
+
+void Island::assignBiomes(float x1, float y1, float x2, float y2, float* xValues, float* yValues, int vertCount){
+	char vertStr1[100], vertStr2[100];
+
+	//// init shore info
+	//for (int i = 0; i < vertCount; ++i){
+	//	// assign ocean values
+	//	if (xValues[i] == x1 && yValues[i] == y1){
+	//		sprintf(vertStr1, "vert%d", i); // form the name of the current vert
+
+	//		if (strcmp(Sim::findObject(vertStr1)->getDataField("Elevation", NULL), "0.000000") == 0){
+	//			//Sim::findObject(vertStr1)->setDataField("Ocean", NULL, "0");
+	//			Sim::findObject(vertStr1)->setDataField("Shore", NULL, "1");
+	//		}
+	//		else{
+	//			//Sim::findObject(vertStr1)->setDataField("Ocean", NULL, "1");
+	//			Sim::findObject(vertStr1)->setDataField("Shore", NULL, "1");
+	//		}
+	//	}
+	//	else if (xValues[i] == x2 && yValues[i] == y2){
+	//		sprintf(vertStr1, "vert%d", i); // form the name of the current vert
+
+	//		if (strcmp(Sim::findObject(vertStr1)->getDataField("Elevation", NULL), "0.000000") == 0){
+	//			//Sim::findObject(vertStr1)->setDataField("Ocean", NULL, "0");
+	//			Sim::findObject(vertStr1)->setDataField("Shore", NULL, "1");
+	//		}
+	//		else{
+	//			//Sim::findObject(vertStr1)->setDataField("Ocean", NULL, "1");
+	//			Sim::findObject(vertStr1)->setDataField("Shore", NULL, "1");
+	//		}
+	//	}
+
+	//}
+
+	// check if ocean borders land
+	for (int i = 0; i < vertCount; ++i){
+
+		if (mFabs(xValues[i] - x1) < 0.00001 && mFabs(yValues[i] - y1) < 0.00001){
+			sprintf(vertStr1, "vert%d", i); // form the name of the first vert
+			for (int j = 0; j < vertCount; ++j){
+
+				if (mFabs(xValues[j] - x2) < 0.00001 && mFabs(yValues[j] - y2) < 0.00001){
+					sprintf(vertStr2, "vert%d", j); // form the name of the second vert
+
+					// assign shore biome if one cell is water and the other is land (from the elevation)
+					if (dAtof(Sim::findObject(vertStr1)->getDataField("Elevation", NULL)) == 0 &&
+						dAtof(Sim::findObject(vertStr2)->getDataField("Elevation", NULL)) != 0){
+
+						Sim::findObject(vertStr1)->setDataField("Biome", NULL, "Ocean");
+						Sim::findObject(vertStr2)->setDataField("Biome", NULL, "Shore");
+						Sim::findObject(vertStr2)->setDataField("Shore", NULL, "0");
+
+					}
+					else if (	dAtof(Sim::findObject(vertStr1)->getDataField("Elevation", NULL)) != 0 &&
+								dAtof(Sim::findObject(vertStr2)->getDataField("Elevation", NULL)) == 0){
+
+						Sim::findObject(vertStr1)->setDataField("Biome", NULL, "Shore");
+						Sim::findObject(vertStr1)->setDataField("Shore", NULL, "0");
+						Sim::findObject(vertStr2)->setDataField("Biome", NULL, "Ocean");
+
+					}
+					//both are ocean
+					else if (	dAtof(Sim::findObject(vertStr1)->getDataField("Elevation", NULL)) == 0 &&
+								dAtof(Sim::findObject(vertStr2)->getDataField("Elevation", NULL)) == 0){
+
+						Sim::findObject(vertStr1)->setDataField("Biome", NULL, "Ocean");
+						Sim::findObject(vertStr2)->setDataField("Biome", NULL, "Ocean");
+
+					}
+					//both are land
+					else if (	dAtof(Sim::findObject(vertStr1)->getDataField("Elevation", NULL)) != 0 &&
+								dAtof(Sim::findObject(vertStr2)->getDataField("Elevation", NULL)) != 0){
+
+						if (dAtof(Sim::findObject(vertStr1)->getDataField("Shore", NULL)) == 0 &&
+							dAtof(Sim::findObject(vertStr2)->getDataField("Shore", NULL)) == 0){
+
+							Sim::findObject(vertStr1)->setDataField("Biome", NULL, "Shore");
+							Sim::findObject(vertStr2)->setDataField("Biome", NULL, "Shore");
+
+						}else if (dAtof(Sim::findObject(vertStr1)->getDataField("Shore", NULL)) == 0 &&
+							dAtof(Sim::findObject(vertStr2)->getDataField("Shore", NULL)) == 1){
+
+							Sim::findObject(vertStr1)->setDataField("Biome", NULL, "Shore");
+							assignLandBiome(vertStr2);
+
+						}
+						else if (	dAtof(Sim::findObject(vertStr1)->getDataField("Shore", NULL)) == 1 &&
+									dAtof(Sim::findObject(vertStr2)->getDataField("Shore", NULL)) == 0){
+
+							assignLandBiome(vertStr1);
+							Sim::findObject(vertStr2)->setDataField("Biome", NULL, "Shore");
+
+						}
+						else{
+							assignLandBiome(vertStr1);
+							assignLandBiome(vertStr2);
+						}
+						
+					}
+					else{
+						Sim::findObject(vertStr1)->setDataField("Biome", NULL, "Ocean");
+						Sim::findObject(vertStr2)->setDataField("Biome", NULL, "Ocean");
+					}
+				}
+			}
+		}
+	}
+}
+
+
+void Island::assignLandBiome(char* vert){
+	
+	float threshold = 0;
+
+	if (dAtof(Sim::findObject(vert)->getDataField("LandNoise", NULL)) > threshold){
+		Sim::findObject(vert)->setDataField("Biome", NULL, "Forest");
+	}
+	else{
+		Sim::findObject(vert)->setDataField("Biome", NULL, "Field");
+	}
+}
+
+
+
+//void Island::fillOcean(HashTable<char*, float*> DEdges, float x, float y, int vertCount, float* xValues, float* yValues){
+//	char key[100];
+//	int counter = 0;
+//
+//	char tempStr[100];
+//
+//	for (int i = 0; i < vertCount; ++i){
+//		if (xValues[i] == x && yValues[i] == y){
+//			sprintf(tempStr, "vert%d", i);
+//			
+//		}
+//	}
+//
+//	Con::printf("fill begin");
+//	// if the current node is above sea level return without setting the biome
+//	if (dAtof(Sim::findObject(tempStr)->getDataField("Elevation", NULL)) > 0){
+//		Con::printf("current not an ocean cell");
+//		return;
+//	}
+//
+//	Sim::findObject(tempStr)->setDataField("Biome", NULL, "Ocean2");
+//	Con::printf("found object and set biome data");
+//	sprintf(key, "%f %f", x, y);
+//	Con::printf("assign key value");
+//	counter = DEdges.count(key);
+//	Con::printf("assign done");
+//	//for (int i = 0; i < counter; ++i){
+//	Con::printf("recurrsively fill all adjacent %f %f", DEdges.find(key)->value[2], DEdges.find(key)->value[3]);
+//		fillOcean(DEdges, DEdges.find(key)->value[2], DEdges.find(key)->value[3], vertCount, xValues, yValues);
+//		Con::printf("erase current entry");
+//		DEdges.erase(DEdges.find(key));
+//	//}
+//}
+//
+//char* Island::findVert(float x, float y, int vertCount, float* xValues, float* yValues){
+//	char tempStr[100];
+//
+//	for (int i = 0; i < vertCount; ++i){
+//		if (xValues[i] == x && yValues[i] == y){
+//			sprintf(tempStr, "vert%d", i);
+//			return tempStr;
+//		}
+//	}
+//}
 
 IMPLEMENT_CONOBJECT(Island);
