@@ -50,14 +50,13 @@ bool Island::onAdd()
 	SimObject tmpDelaunay[3 * vertCount];
 	SimObject tmpTri[6 * vertCount];
 
-	HashTable<char*, float*> DEdges;
-	HashTable<char*, float*>::iterator iter;
 	Queue<int> fillQueue;
-	float* point;
-	char* queueObject;
 
 	bool adjCells[vertCount][vertCount] = {0};
 	bool visitedCell[vertCount] = {0};
+
+	char* endPtr;
+	char name[100];
 
 	Vector<char*> distanceVector;
 	char* dist;
@@ -78,10 +77,11 @@ bool Island::onAdd()
 	float yValues[vertCount];
 	float noise[vertCount];
 	float biomeNoise[vertCount];
-	char tempStr[100], nameStr[15], noiseStr[100], tempKey[100];
+	char tempStr[100], nameStr[15], noiseStr[100];
 	int counter = 0, edgeCount = 0, dCount = 0;
 	float r = 0; // radius from center of map to given point
 	float seed = mRandF(0, 100); // the seed for our noise function
+	Con::printf("seed: %f", seed);
 
 	//---------------------------
 	//-----Generate Vertices-------
@@ -215,10 +215,7 @@ bool Island::onAdd()
 	
 	//fillOcean(DEdges, x1, y1, vertCount, xValues, yValues);
 
-	char* endPtr;
-	char name[100];
 	
-	//Con::printf("%d %d", DEdges.size(), DEdges.tableSize());
 
 	//make sure the starting cell is an ocean cell
 	for (int i = 0; i < vertCount; ++i){
@@ -228,20 +225,10 @@ bool Island::onAdd()
 			break;
 		}
 	}
-	
-	
 
 	fillQueue.enqueue(index);
 
-	
-	
-
 	while (fillQueue.size() != 0){
-		/*Con::printf("-------");
-		for (int i = 0; i < fillQueue.size(); ++i){
-			Con::printf("%s", fillQueue[i]);
-		}
-		Con::printf("===============");*/
 		//dequeue an element from the queue
 		sprintf(name, "vert%d", fillQueue[0]);
 		index = fillQueue[0];
@@ -249,7 +236,7 @@ bool Island::onAdd()
 
 		if (strcmp(Sim::findObject(name)->getDataField("Elevation", NULL), "0.000000") == 0){
 
-			Sim::findObject(name)->setDataField("Biome", NULL, "Ocean2");
+			Sim::findObject(name)->setDataField("Biome", NULL, "Ocean");
 
 			//add adjacent cells to queue
 			for (int i = 0; i < vertCount; ++i){
@@ -262,6 +249,9 @@ bool Island::onAdd()
 					
 				}
 			}
+		}
+		else{
+			Sim::findObject(name)->setDataField("Biome", NULL, "Shore");
 		}
 
 		
@@ -513,32 +503,32 @@ void Island::assignBiomes(float x1, float y1, float x2, float y2, float* xValues
 					sprintf(vertStr2, "vert%d", j); // form the name of the second vert
 
 					// assign shore biome if one cell is water and the other is land (from the elevation)
-					if (dAtof(Sim::findObject(vertStr1)->getDataField("Elevation", NULL)) == 0 &&
-						dAtof(Sim::findObject(vertStr2)->getDataField("Elevation", NULL)) != 0){
+					//if (dAtof(Sim::findObject(vertStr1)->getDataField("Elevation", NULL)) == 0 &&
+					//	dAtof(Sim::findObject(vertStr2)->getDataField("Elevation", NULL)) != 0){
 
-						Sim::findObject(vertStr1)->setDataField("Biome", NULL, "Ocean");
-						Sim::findObject(vertStr2)->setDataField("Biome", NULL, "Shore");
-						Sim::findObject(vertStr2)->setDataField("Shore", NULL, "0");
+					//	Sim::findObject(vertStr1)->setDataField("Biome", NULL, "Ocean");
+					//	Sim::findObject(vertStr2)->setDataField("Biome", NULL, "Shore");
+					//	Sim::findObject(vertStr2)->setDataField("Shore", NULL, "0");
 
-					}
-					else if (	dAtof(Sim::findObject(vertStr1)->getDataField("Elevation", NULL)) != 0 &&
-								dAtof(Sim::findObject(vertStr2)->getDataField("Elevation", NULL)) == 0){
+					//}
+					//else if (	dAtof(Sim::findObject(vertStr1)->getDataField("Elevation", NULL)) != 0 &&
+					//			dAtof(Sim::findObject(vertStr2)->getDataField("Elevation", NULL)) == 0){
 
-						Sim::findObject(vertStr1)->setDataField("Biome", NULL, "Shore");
-						Sim::findObject(vertStr1)->setDataField("Shore", NULL, "0");
-						Sim::findObject(vertStr2)->setDataField("Biome", NULL, "Ocean");
+					//	Sim::findObject(vertStr1)->setDataField("Biome", NULL, "Shore");
+					//	Sim::findObject(vertStr1)->setDataField("Shore", NULL, "0");
+					//	Sim::findObject(vertStr2)->setDataField("Biome", NULL, "Ocean");
 
-					}
-					//both are ocean
-					else if (	dAtof(Sim::findObject(vertStr1)->getDataField("Elevation", NULL)) == 0 &&
-								dAtof(Sim::findObject(vertStr2)->getDataField("Elevation", NULL)) == 0){
+					//}
+					////both are ocean
+					//else if (	dAtof(Sim::findObject(vertStr1)->getDataField("Elevation", NULL)) == 0 &&
+					//			dAtof(Sim::findObject(vertStr2)->getDataField("Elevation", NULL)) == 0){
 
-						Sim::findObject(vertStr1)->setDataField("Biome", NULL, "Ocean");
-						Sim::findObject(vertStr2)->setDataField("Biome", NULL, "Ocean");
+					//	Sim::findObject(vertStr1)->setDataField("Biome", NULL, "Ocean");
+					//	Sim::findObject(vertStr2)->setDataField("Biome", NULL, "Ocean");
 
-					}
-					//both are land
-					else if (	dAtof(Sim::findObject(vertStr1)->getDataField("Elevation", NULL)) != 0 &&
+					//}
+					////both are land
+					/*if (	dAtof(Sim::findObject(vertStr1)->getDataField("Elevation", NULL)) != 0 &&
 								dAtof(Sim::findObject(vertStr2)->getDataField("Elevation", NULL)) != 0){
 
 						if (dAtof(Sim::findObject(vertStr1)->getDataField("Shore", NULL)) == 0 &&
@@ -561,16 +551,26 @@ void Island::assignBiomes(float x1, float y1, float x2, float y2, float* xValues
 							Sim::findObject(vertStr2)->setDataField("Biome", NULL, "Shore");
 
 						}
-						else{
-							assignLandBiome(vertStr1);
-							assignLandBiome(vertStr2);
-						}
+						else{*/
+
+					if (dAtof(Sim::findObject(vertStr1)->getDataField("Elevation", NULL)) == 0){
+						Sim::findObject(vertStr1)->setDataField("Biome", NULL, "Lake");
+					}
+					else if (dAtof(Sim::findObject(vertStr2)->getDataField("Elevation", NULL)) == 0){
+						Sim::findObject(vertStr2)->setDataField("Biome", NULL, "Lake");
+					}
+					else{
+						assignLandBiome(vertStr1);
+						assignLandBiome(vertStr2);
+					}
+							
+						/*}
 						
 					}
 					else{
 						Sim::findObject(vertStr1)->setDataField("Biome", NULL, "Ocean");
 						Sim::findObject(vertStr2)->setDataField("Biome", NULL, "Ocean");
-					}
+					}*/
 				}
 			}
 		}
