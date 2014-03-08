@@ -41,7 +41,7 @@ bool Island::onAdd()
 	
 
 	//set the area and vert. count
-	const int vertCount = 100;
+	const int vertCount = 500;
 	F32 area = 500;
 
 	//create array of vert. simObjects that will store the vert information and be output to file.
@@ -52,12 +52,12 @@ bool Island::onAdd()
 
 	HashTable<char*, float*> DEdges;
 	HashTable<char*, float*>::iterator iter;
-	Queue<char*> fillQueue;
+	Queue<int> fillQueue;
 	float* point;
 	char* queueObject;
 
-	bool adjCells[vertCount][vertCount];
-	Point2F DPoint[vertCount];
+	bool adjCells[vertCount][vertCount] = {0};
+	bool visitedCell[vertCount] = {0};
 
 	Vector<char*> distanceVector;
 	char* dist;
@@ -154,37 +154,28 @@ bool Island::onAdd()
 	//-----Delaunay Edges-------
 	//-------------------------
 	while (voronoi.getNextDelaunay(x1, y1, x2, y2)){
-		// populate hashtable which will later be used to assign biomes
+		// find the index of the two verts
+		int i, j;
+		for (i = 0; i < vertCount; ++i){
+			if (mFabs(xValues[i] - x1) < 0.00001){
+				if (mFabs(yValues[i] - y1) < 0.00001){
+					break;
+				}
+			}
 
-		sprintf(tempStr, "%f %f", x1, y1);
-		point = new float[4];
+		}
 
-		point[0] = x1;
-		point[1] = y1;
-		point[2] = x2;
-		point[3] = y2;
+		for (j = 0; j < vertCount; ++j){
+			if (mFabs(xValues[j] - x2) < 0.00001){
+				if (mFabs(yValues[j] - y2) < 0.00001){
+					break;
+				}
+			}
 
-		DEdges.insertUnique(tempStr, point);
-		/*int count = 0;
-		for (iter = DEdges.find(tempStr); count < DEdges.count(tempStr); ++iter) {
-			Con::printf("%f %f", iter.getValue()[2], iter.getValue()[3]);
-			++count;
-		}*/
+		}
 
-		sprintf(tempStr, "%f %f", x2, y2);
-		point = new float[4];
-
-		point[0] = x2;
-		point[1] = y2;
-		point[2] = x1;
-		point[3] = y1;
-
-		DEdges.insertUnique(tempStr, point);
-		/*count = 0;
-		for (iter = DEdges.find(tempStr); count < DEdges.count(tempStr); ++iter) {
-			Con::printf("%f %f", iter.getValue()[2], iter.getValue()[3]);
-			++count;
-		}*/
+		adjCells[i][j] = true;
+		adjCells[j][i] = true;
 
 		// save Delaunay edges in a set
 		sprintf(tempStr, "%f %f %f %f", x1, y1, x2, y2);
@@ -205,7 +196,7 @@ bool Island::onAdd()
 	//-----Biome Assignment-------
 	//-------------------------
 	//sprintf(tempStr, "%f %f", x1, y1);
-	Con::printf("%d", DEdges.size());
+	//Con::printf("%d", DEdges.size());
 	//int count = 0;
 	//for (iter = DEdges.begin(); count < DEdges.size(); ++iter) {
 	//	Con::printf("%f %f", iter.getValue()[2], iter.getValue()[3]);
@@ -227,18 +218,20 @@ bool Island::onAdd()
 	char* endPtr;
 	char name[100];
 	
-	Con::printf("%d %d", DEdges.size(), DEdges.tableSize());
+	//Con::printf("%d %d", DEdges.size(), DEdges.tableSize());
 
+	//make sure the starting cell is an ocean cell
 	for (int i = 0; i < vertCount; ++i){
-		if (mFabs(xValues[i] - x1) < 0.00001 ){
-			if (mFabs(yValues[i] - y1) < 0.00001){
-				sprintf(tempStr, "vert%d %f %f", i, x2, y2);
-			}
+		sprintf(name, "vert%d", i);
+		if (strcmp(Sim::findObject(name)->getDataField("Elevation", NULL), "0.000000") == 0 && (xValues[i] > (area - 25) || xValues[i] < (-area + 25))){
+			index = i;
+			break;
 		}
-		
 	}
+	
+	
 
-	fillQueue.enqueue(tempStr);
+	fillQueue.enqueue(index);
 
 	
 	
@@ -250,66 +243,25 @@ bool Island::onAdd()
 		}
 		Con::printf("===============");*/
 		//dequeue an element from the queue
-		endPtr = strtok(fillQueue[0], " ");
-		sprintf(name, "%s", endPtr);
-
-		endPtr = strtok(NULL, " ");
-		x = dAtof(endPtr);
-
-		endPtr = strtok(NULL, " ");
-		y = dAtof(endPtr);
-		
-		
-
+		sprintf(name, "vert%d", fillQueue[0]);
+		index = fillQueue[0];
 		fillQueue.dequeue();
 
 		if (strcmp(Sim::findObject(name)->getDataField("Elevation", NULL), "0.000000") == 0){
-		//if (strcmp(Sim::findObject(name)->getDataField("Biome", NULL), "Ocean") == 0){
-			//Con::printf("set cell to ocean");
+
 			Sim::findObject(name)->setDataField("Biome", NULL, "Ocean2");
 
-			//Con::printf("found object and set biome data");
-			
-			sprintf(tempStr, "%f %f", x, y);
-			//sprintf(tempKey, "%s", tempStr);
-			//Con::printf("assign key value");
-			counter = 0;
-			//Con::printf("========= %f %f", x, y);
+			//add adjacent cells to queue
+			for (int i = 0; i < vertCount; ++i){
 
-			//Con::printf("------------");
-			//Con::printf("---- %s", tempStr);
-			for (iter = DEdges.find(tempStr); counter < DEdges.count(tempStr); ++iter){
-
-				//Con::printf("%f %f", iter.getValue()[2], iter.getValue()[3]);
-				for (int j = 0; j < vertCount; ++j){
-					/*if (yValues[j] > 0){
-						Con::printf("%f, %f ||| %f", yValues[j], xValues[j], DEdges.find(tempStr).getValue()[3]);
-					}*/
-					if (mFabs(xValues[j] - iter.getValue()[2]) < 0.000001){
-						//Con::printf("%f, %f", xValues[j], yValues[j]);
-						if (mFabs(yValues[j] - iter.getValue()[3]) < 0.000001){
-								
-							queueObject = new char[100];
-							sprintf(queueObject, "vert%d %f %f", j, iter.getValue()[2], iter.getValue()[3]);
-							break;
-						}
-						else{
-							Con::printf("not found");
-						}
-							
+				if (adjCells[i][index]){
+					if (visitedCell[i] == 0){
+						visitedCell[i] = 1;
+						fillQueue.enqueue(i);
 					}
+					
 				}
-				//Con::printf("Queue: %d", fillQueue.size());
-				fillQueue.enqueue(queueObject);
-				//sprintf(tempStr, "%s", tempKey);
-				++counter;
-				//DEdges.erase(DEdges.find(tempStr));
 			}
-			//when it checks adjacent nodes based on elevation, it will loop infinitely unless we delete used nodes
-			DEdges.erase(tempStr); 
-			//Con::printf("===============");
-
-			
 		}
 
 		
@@ -470,8 +422,8 @@ bool Island::onAdd()
 	}
 	delaunay.unregisterObject();
 
-	delete[] point;
-	delete [] queueObject;
+	//delete[] point;
+//	delete [] queueObject;
 	delete [] dist;
 
 
