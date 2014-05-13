@@ -377,6 +377,10 @@
     <ClCompile Include="..\..\source\graphics\TextureDictionary.cc" />
     <ClCompile Include="..\..\source\graphics\TextureHandle.cc" />
     <ClCompile Include="..\..\source\graphics\TextureManager.cc" />
+    <ClCompile Include="..\..\source\graphics\vmath.c" />
+    <ClCompile Include="..\..\source\graphics\Voronoi.cpp" />
+    <ClCompile Include="..\..\source\graphics\VoronoiDiagramGenerator.cpp" />
+    <ClCompile Include="..\..\source\graphics\VParabola.cpp" />
     <ClCompile Include="..\..\source\gui\containers\guiGridCtrl.cc" />
     <ClCompile Include="..\..\source\gui\guiArrayCtrl.cc" />
     <ClCompile Include="..\..\source\gui\guiBackgroundCtrl.cc" />
@@ -439,6 +443,7 @@
     <ClCompile Include="..\..\source\io\zip\zipObject.cc" />
     <ClCompile Include="..\..\source\io\zip\zipSubStream.cc" />
     <ClCompile Include="..\..\source\io\zip\zipTempStream.cc" />
+    <ClCompile Include="..\..\source\mapGeneration\MapGeneration.cc" />
     <ClCompile Include="..\..\source\math\math_ScriptBinding.cc" />
     <ClCompile Include="..\..\source\math\mPoint.cpp" />
     <ClCompile Include="..\..\source\math\rectClipper.cpp" />
@@ -468,6 +473,7 @@
     <ClCompile Include="..\..\source\network\serverQuery.cc" />
     <ClCompile Include="..\..\source\network\tcpObject.cc" />
     <ClCompile Include="..\..\source\network\telnetConsole.cc" />
+    <ClCompile Include="..\..\source\perlinNoise\simplexnoise.cpp" />
     <ClCompile Include="..\..\source\persistence\taml\binary\tamlBinaryReader.cc" />
     <ClCompile Include="..\..\source\persistence\taml\binary\tamlBinaryWriter.cc" />
     <ClCompile Include="..\..\source\persistence\taml\json\tamlJSONParser.cc" />
@@ -879,6 +885,13 @@
     <ClInclude Include="..\..\source\graphics\TextureManager.h" />
     <ClInclude Include="..\..\source\graphics\TextureManager_ScriptBinding.h" />
     <ClInclude Include="..\..\source\graphics\TextureObject.h" />
+    <ClInclude Include="..\..\source\graphics\VEdge.h" />
+    <ClInclude Include="..\..\source\graphics\VEvent.h" />
+    <ClInclude Include="..\..\source\graphics\vmath.h" />
+    <ClInclude Include="..\..\source\graphics\Voronoi.h" />
+    <ClInclude Include="..\..\source\graphics\VoronoiDiagramGenerator.h" />
+    <ClInclude Include="..\..\source\graphics\VParabola.h" />
+    <ClInclude Include="..\..\source\graphics\VPoint.h" />
     <ClInclude Include="..\..\source\gui\containers\guiGridCtrl.h" />
     <ClInclude Include="..\..\source\gui\guiArrayCtrl.h" />
     <ClInclude Include="..\..\source\gui\guiBackgroundCtrl.h" />
@@ -946,6 +959,8 @@
     <ClInclude Include="..\..\source\io\zip\zipStatFilter.h" />
     <ClInclude Include="..\..\source\io\zip\zipSubStream.h" />
     <ClInclude Include="..\..\source\io\zip\zipTempStream.h" />
+    <ClInclude Include="..\..\source\mapGeneration\MapGeneration.h" />
+    <ClInclude Include="..\..\source\mapGeneration\MapGeneration_ScriptBinding.h" />
     <ClInclude Include="..\..\source\math\box_ScriptBinding.h" />
     <ClInclude Include="..\..\source\math\matrix_ScriptBinding.h" />
     <ClInclude Include="..\..\source\math\random_ScriptBinding.h" />
@@ -992,6 +1007,7 @@
     <ClInclude Include="..\..\source\network\tcpObject_ScriptBinding.h" />
     <ClInclude Include="..\..\source\network\telnetConsole.h" />
     <ClInclude Include="..\..\source\network\telnetConsole_ScriptBinding.h" />
+    <ClInclude Include="..\..\source\perlinNoise\simplexnoise.h" />
     <ClInclude Include="..\..\source\persistence\rapidjson\include\rapidjson\allocators.h" />
     <ClInclude Include="..\..\source\persistence\rapidjson\include\rapidjson\document.h" />
     <ClInclude Include="..\..\source\persistence\rapidjson\include\rapidjson\encodedstream.h" />
@@ -1275,6 +1291,9 @@
       <Project>{86cb2525-0cf3-40d3-bf42-a0a95035ee8c}</Project>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\..\source\graphics\vmath.inl" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

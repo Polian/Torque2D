@@ -199,6 +199,12 @@
     <Filter Include="spine">
       <UniqueIdentifier>{bb776838-ed6f-477c-b366-dd0c5c60ae5f}</UniqueIdentifier>
     </Filter>
+    <Filter Include="mapGeneration">
+      <UniqueIdentifier>{d38bcf92-e1ae-4b4d-a1f1-daae3798fe61}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="perlinNoise">
+      <UniqueIdentifier>{74b705b8-019f-4cea-ab6b-860a99b5bb95}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\source\audio\audio.cc">
@@ -1424,6 +1430,24 @@
     </ClCompile>
     <ClCompile Include="..\..\source\2d\sceneobject\SkeletonObject.cc">
       <Filter>2d\sceneobject</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\source\mapGeneration\MapGeneration.cc">
+      <Filter>mapGeneration</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\source\graphics\vmath.c">
+      <Filter>graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\source\graphics\Voronoi.cpp">
+      <Filter>graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\source\graphics\VoronoiDiagramGenerator.cpp">
+      <Filter>graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\source\graphics\VParabola.cpp">
+      <Filter>graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\source\perlinNoise\simplexnoise.cpp">
+      <Filter>perlinNoise</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -3159,6 +3183,36 @@
     <ClInclude Include="..\..\source\2d\sceneobject\SkeletonObject.h">
       <Filter>2d\sceneobject</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\source\mapGeneration\MapGeneration.h">
+      <Filter>mapGeneration</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\source\mapGeneration\MapGeneration_ScriptBinding.h">
+      <Filter>mapGeneration</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\source\graphics\VEdge.h">
+      <Filter>graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\source\graphics\VEvent.h">
+      <Filter>graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\source\graphics\vmath.h">
+      <Filter>graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\source\graphics\Voronoi.h">
+      <Filter>graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\source\graphics\VoronoiDiagramGenerator.h">
+      <Filter>graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\source\graphics\VParabola.h">
+      <Filter>graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\source\graphics\VPoint.h">
+      <Filter>graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\source\perlinNoise\simplexnoise.h">
+      <Filter>perlinNoise</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="..\..\source\math\mMath_ASM.asm">
@@ -3176,5 +3230,10 @@
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Torque 2D.rc" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\..\source\graphics\vmath.inl">
+      <Filter>graphics</Filter>
+    </None>
   </ItemGroup>
 </Project>
