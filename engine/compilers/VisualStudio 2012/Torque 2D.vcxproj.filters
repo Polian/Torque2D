@@ -204,6 +204,7 @@
       <UniqueIdentifier>{30e1ec13-118b-4d50-8e04-76e76fcfdc01}</UniqueIdentifier>
     </Filter>
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
     <Filter Include="persistence\rapidjson">
       <UniqueIdentifier>{4d0b6ff3-58d2-4952-bd14-915a50a3b568}</UniqueIdentifier>
@@ -227,6 +228,11 @@
       <UniqueIdentifier>{bb776838-ed6f-477c-b366-dd0c5c60ae5f}</UniqueIdentifier>
     </Filter>
 >>>>>>> original/master
+=======
+    <Filter Include="procedural">
+      <UniqueIdentifier>{6b250266-f4b2-4333-8cd7-57b14b851072}</UniqueIdentifier>
+    </Filter>
+>>>>>>> Island
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\source\audio\audio.cc">
@@ -1519,12 +1525,18 @@
       <Filter>2d\core</Filter>
     </ClCompile>
 <<<<<<< HEAD
+<<<<<<< HEAD
     <ClCompile Include="..\..\source\graphics\vmath.c">
       <Filter>graphics</Filter>
+=======
+    <ClCompile Include="..\..\source\graphics\VoronoiDiagramGenerator.cpp">
+      <Filter>procedural</Filter>
+>>>>>>> Island
     </ClCompile>
-    <ClCompile Include="..\..\source\graphics\Voronoi.cpp">
-      <Filter>graphics</Filter>
+    <ClCompile Include="MapGeneration.cc">
+      <Filter>procedural</Filter>
     </ClCompile>
+<<<<<<< HEAD
     <ClCompile Include="..\..\source\graphics\VParabola.cpp">
       <Filter>graphics</Filter>
 =======
@@ -1657,6 +1669,10 @@
     <ClCompile Include="..\..\source\2d\sceneobject\SkeletonObject.cc">
       <Filter>2d\sceneobject</Filter>
 >>>>>>> original/master
+=======
+    <ClCompile Include="..\..\source\perlinNoise\simplexnoise.cpp">
+      <Filter>procedural</Filter>
+>>>>>>> Island
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -3185,23 +3201,22 @@
       <Filter>2d\core</Filter>
     </ClInclude>
 <<<<<<< HEAD
+<<<<<<< HEAD
     <ClInclude Include="..\..\source\graphics\VEdge.h">
       <Filter>graphics</Filter>
+=======
+    <ClInclude Include="..\..\source\graphics\VoronoiDiagramGenerator.h">
+      <Filter>procedural</Filter>
+>>>>>>> Island
     </ClInclude>
-    <ClInclude Include="..\..\source\graphics\VEvent.h">
-      <Filter>graphics</Filter>
+    <ClInclude Include="MapGeneration.h">
+      <Filter>procedural</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\source\graphics\vmath.h">
-      <Filter>graphics</Filter>
+    <ClInclude Include="MapGeneration_ScriptBinding.h">
+      <Filter>procedural</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\source\graphics\Voronoi.h">
-      <Filter>graphics</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\source\graphics\VParabola.h">
-      <Filter>graphics</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\source\graphics\VPoint.h">
-      <Filter>graphics</Filter>
+    <ClInclude Include="..\..\source\perlinNoise\simplexnoise.h">
+      <Filter>procedural</Filter>
     </ClInclude>
 =======
     <ClInclude Include="..\..\source\persistence\rapidjson\include\rapidjson\allocators.h">
@@ -3615,6 +3630,7 @@
     <ResourceCompile Include="Torque 2D.rc" />
   </ItemGroup>
 <<<<<<< HEAD
+<<<<<<< HEAD
   <ItemGroup>
     <None Include="..\..\source\graphics\vmath.inl">
       <Filter>graphics</Filter>
@@ -3622,4 +3638,6 @@
   </ItemGroup>
 =======
 >>>>>>> original/master
+=======
+>>>>>>> Island
 </Project>

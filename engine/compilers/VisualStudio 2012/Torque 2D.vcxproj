@@ -69,11 +69,11 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup>
     <_ProjectFileVersion>10.0.30319.1</_ProjectFileVersion>
-    <OutDir Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">../../../</OutDir>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">..\..\..\..\..\Documents\Light\</OutDir>
     <IntDir Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">../../Link/VC2012.$(Configuration).$(PlatformName)/$(ProjectName)/</IntDir>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     </LinkIncremental>
-    <OutDir Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">../../../</OutDir>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">..\..\..\..\..\Documents\Light\</OutDir>
     <OutDir Condition="'$(Configuration)|$(Platform)'=='Shipping|Win32'">../../../</OutDir>
     <IntDir Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">../../Link/VC2012.$(Configuration).$(PlatformName)/$(ProjectName)/</IntDir>
     <IntDir Condition="'$(Configuration)|$(Platform)'=='Shipping|Win32'">../../Link/VC2012.$(Configuration).$(PlatformName)/$(ProjectName)/</IntDir>
@@ -83,6 +83,7 @@
     <TargetName Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Torque2D</TargetName>
     <TargetName Condition="'$(Configuration)|$(Platform)'=='Shipping|Win32'">Torque2D</TargetName>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" />
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <Midl>
       <TypeLibraryName>$(OutDir)Torque2D.tlb</TypeLibraryName>
@@ -122,7 +123,7 @@
     <Link>
 <<<<<<< HEAD
       <AdditionalDependencies>COMCTL32.LIB;COMDLG32.LIB;USER32.LIB;ADVAPI32.LIB;GDI32.LIB;RPCRT4.LIB;WINMM.LIB;WSOCK32.LIB;vfw32.lib;Imm32.lib;unicows.lib;shell32.lib;shlwapi.lib;ole32.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <OutputFile>../../../Torque2D_DEBUG.exe</OutputFile>
+      <OutputFile>..\..\..\..\..\Documents\Light\Torque2D_DEBUG.exe</OutputFile>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <AdditionalLibraryDirectories>../../Lib/unicode;../../lib/MSPlatformSDK/Lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
 =======
@@ -182,7 +183,7 @@
     <Link>
 <<<<<<< HEAD
       <AdditionalDependencies>COMCTL32.LIB;COMDLG32.LIB;USER32.LIB;ADVAPI32.LIB;GDI32.LIB;WINMM.LIB;WSOCK32.LIB;vfw32.lib;Imm32.lib;unicows.lib;shell32.lib;shlwapi.lib;ole32.lib;RPCRT4.LIB;%(AdditionalDependencies)</AdditionalDependencies>
-      <OutputFile>../../../Torque2D.exe</OutputFile>
+      <OutputFile>..\..\..\..\..\Documents\Light\Torque2D.exe</OutputFile>
       <SuppressStartupBanner>false</SuppressStartupBanner>
       <AdditionalLibraryDirectories>../../Lib/unicode;../../Lib/MSPlatformSDK/Lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
 =======
@@ -485,12 +486,16 @@
     <ClCompile Include="..\..\source\graphics\TextureHandle.cc" />
     <ClCompile Include="..\..\source\graphics\TextureManager.cc" />
 <<<<<<< HEAD
+<<<<<<< HEAD
     <ClCompile Include="..\..\source\graphics\vmath.c" />
     <ClCompile Include="..\..\source\graphics\Voronoi.cpp" />
     <ClCompile Include="..\..\source\graphics\VParabola.cpp" />
 =======
     <ClCompile Include="..\..\source\gui\containers\guiGridCtrl.cc" />
 >>>>>>> original/master
+=======
+    <ClCompile Include="..\..\source\graphics\VoronoiDiagramGenerator.cpp" />
+>>>>>>> Island
     <ClCompile Include="..\..\source\gui\guiArrayCtrl.cc" />
     <ClCompile Include="..\..\source\gui\guiBackgroundCtrl.cc" />
     <ClCompile Include="..\..\source\gui\guiBitmapBorderCtrl.cc" />
@@ -595,6 +600,10 @@
     <ClCompile Include="..\..\source\network\tcpObject.cc" />
     <ClCompile Include="..\..\source\network\telnetConsole.cc" />
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+    <ClCompile Include="..\..\source\perlinNoise\simplexnoise.cpp" />
+>>>>>>> Island
     <ClCompile Include="..\..\source\persistence\taml\taml.cc" />
     <ClCompile Include="..\..\source\persistence\taml\tamlBinaryReader.cc" />
     <ClCompile Include="..\..\source\persistence\taml\tamlBinaryWriter.cc" />
@@ -799,6 +808,7 @@
     <ClCompile Include="..\..\source\testing\tests\platformMemoryTests.cc" />
     <ClCompile Include="..\..\source\testing\tests\platformStringTests.cc" />
     <ClCompile Include="..\..\source\testing\unitTesting.cc" />
+    <ClCompile Include="MapGeneration.cc" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\source\2d\assets\AnimationAsset.h" />
@@ -1120,6 +1130,7 @@
     <ClInclude Include="..\..\source\graphics\TextureManager.h" />
 <<<<<<< HEAD
     <ClInclude Include="..\..\source\graphics\TextureObject.h" />
+<<<<<<< HEAD
     <ClInclude Include="..\..\source\graphics\VEdge.h" />
     <ClInclude Include="..\..\source\graphics\VEvent.h" />
     <ClInclude Include="..\..\source\graphics\vmath.h" />
@@ -1131,6 +1142,9 @@
     <ClInclude Include="..\..\source\graphics\TextureObject.h" />
     <ClInclude Include="..\..\source\gui\containers\guiGridCtrl.h" />
 >>>>>>> original/master
+=======
+    <ClInclude Include="..\..\source\graphics\VoronoiDiagramGenerator.h" />
+>>>>>>> Island
     <ClInclude Include="..\..\source\gui\guiArrayCtrl.h" />
     <ClInclude Include="..\..\source\gui\guiBackgroundCtrl.h" />
     <ClInclude Include="..\..\source\gui\guiBitmapCtrl.h" />
@@ -1266,6 +1280,7 @@
     <ClInclude Include="..\..\source\network\serverQuery.h" />
     <ClInclude Include="..\..\source\network\tcpObject.h" />
     <ClInclude Include="..\..\source\network\telnetConsole.h" />
+    <ClInclude Include="..\..\source\perlinNoise\simplexnoise.h" />
     <ClInclude Include="..\..\source\persistence\taml\taml.h" />
     <ClInclude Include="..\..\source\persistence\taml\tamlBinaryReader.h" />
     <ClInclude Include="..\..\source\persistence\taml\tamlBinaryWriter.h" />
@@ -1573,6 +1588,8 @@
     <ClInclude Include="..\..\source\testing\unitTesting_ScriptBinding.h" />
 >>>>>>> original/master
     <ClInclude Include="..\..\source\torqueConfig.h" />
+    <ClInclude Include="MapGeneration.h" />
+    <ClInclude Include="MapGeneration_ScriptBinding.h" />
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="..\..\source\math\mMath_ASM.asm">
@@ -1623,11 +1640,14 @@
     </ProjectReference>
   </ItemGroup>
 <<<<<<< HEAD
+<<<<<<< HEAD
   <ItemGroup>
     <None Include="..\..\source\graphics\vmath.inl" />
   </ItemGroup>
 =======
 >>>>>>> original/master
+=======
+>>>>>>> Island
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

@@ -53,10 +53,18 @@ namespace Hash
 
 namespace tKeyCompare
 {
+	
+
    template<typename Key>
    inline bool equals( Key keya, Key keyb )
    {
       return ( keya == keyb );
+   }
+
+   template<>
+   inline bool equals<>(char *keya, char *keyb)
+   {
+	   return (dStricmp(keya, keyb) == 0);
    }
 
    template<>
