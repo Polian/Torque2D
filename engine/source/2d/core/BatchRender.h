@@ -112,6 +112,8 @@ private:
     bool                mWireframeMode;
     bool                mBatchEnabled;
 
+	U32					mLightIndex;
+
 public:
     BatchRender();
     virtual ~BatchRender();

@@ -21,6 +21,7 @@ email: shaneosullivan1@gmail.com
 */
 
 #include "VoronoiDiagramGenerator.h"
+#include "console\console.h"
 
 VoronoiDiagramGenerator::VoronoiDiagramGenerator()
 {

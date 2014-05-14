@@ -26,6 +26,9 @@ email: shaneosullivan1@gmail.com
 #include <math.h>
 #include <stdlib.h>
 #include <string.h>
+#include <vector>
+#include <map>
+#include "console\console.h"
 //#include "../logger/Logger.h"
 
 
@@ -39,302 +42,275 @@ email: shaneosullivan1@gmail.com
 
 
 
-struct	Freenode	
-{
-	struct	Freenode *nextfree;
-};
+/**
+* \if internal_doc
+* @ingroup internal
+* \class VPoint
+* class to handle a 2d point
+* \endif
+*/
+class VPoint{
+public:
+	/// defailt ctor
+	VPoint() : x(0.0), y(0.0) {}
 
-struct FreeNodeArrayList
-{
-	struct	Freenode* memory;
-	struct	FreeNodeArrayList* next;
+	/// ctor with initialisation
+	VPoint(double _x, double _y) : x(_x), y(_y) {}
 
-};
+	/// addition
+	inline VPoint operator + (const VPoint &p) const{
+		return VPoint(x + p.x, y + p.y);
+	}
 
-struct	Freelist	
-{
-	struct	Freenode	*head;
-	int		nodesize;
-};
+	/// subtraction
+	inline VPoint operator - (const VPoint &p) const{
+		return VPoint(x - p.x, y - p.y);
+	}
 
-struct PointVDG	
-{
-	float x,y;
-};
+	/// scalar multiplication
+	inline VPoint operator * (const double t) const{
+		return VPoint(x*t, y*t);
+	}
 
-struct Point3
-{
-	float x,y,z;
-	int count;
-};
-
-struct VertexLink
-{
-	PointVDG coord;
-	PointVDG v[3];
-	int count;
-};
-
-// structure used both for sites and for vertices 
-struct Site	
-{
-	struct	PointVDG	coord;
-	int		sitenbr;
-	int		refcnt;
-	int		overallRefcnt;
+	/// vector coordinates
+	double x, y;
 };
 
 
+/// norm of a vector
+inline double norm(const VPoint p){
+	return p.x*p.x + p.y*p.y;
+}
 
-struct Edge	
-{
-	float   a,b,c;
-	struct	Site 	*ep[2];
-	struct	Site	*reg[2];
-	int		edgenbr;
 
+/// 2D vector product
+inline double vector_product(const VPoint &p1, const VPoint &p2){
+	return p1.x*p2.y - p1.y*p2.x;
+}
+
+
+/// scalar product
+inline double scalar_product(const VPoint &p1, const VPoint &p2){
+	return p1.x*p2.x + p1.y*p2.y;
+}
+
+
+/**
+* \if internal_doc
+* @ingroup internal
+* \class GraphEdge
+* handle an edge of the Voronoi Diagram.
+* \endif
+*/
+class GraphEdge{
+public:
+	/// coordinates of the extreme points
+	double x1, y1, x2, y2;
+
+	/// indices of the parent sites that define the edge
+	int point1, point2;
+
+	/// pointer to the next edge
+	GraphEdge* next;
 };
 
-struct GraphEdge
-{
-	float x1,y1,x2,y2;
-//	long v1,v2; //vertices that this was created from
-	struct GraphEdge* next;
+
+/**
+* \if internal_doc
+* @ingroup internal
+* \class Site
+* structure used both for particle sites and for vertices.
+* \endif
+*/
+class Site{
+public:
+	VPoint	coord;
+	int sitenbr;
+	int refcnt;
 };
 
 
 
-
-struct Halfedge 
-{
-	struct	Halfedge	*ELleft, *ELright;
-	struct	Edge	*ELedge;
-	int		ELrefcnt;
-	char	ELpm;
-	struct	Site	*vertex;
-	float	ystar;
-	struct	Halfedge *PQnext;
+class Freenode{
+public:
+	Freenode *nextfree;
 };
 
 
+class FreeNodeArrayList{
+public:
+	Freenode* memory;
+	FreeNodeArrayList* next;
+};
 
 
-class VoronoiDiagramGenerator
-{
+class Freelist{
+public:
+	Freenode *head;
+	int nodesize;
+};
+
+class Edge{
+public:
+	double a, b, c;
+	Site *ep[2];
+	Site *reg[2];
+	int edgenbr;
+};
+
+
+class Halfedge{
+public:
+	Halfedge *ELleft, *ELright;
+	Edge *ELedge;
+	int ELrefcnt;
+	char ELpm;
+	Site *vertex;
+	volatile double ystar;
+	Halfedge *PQnext;
+};
+
+/**
+* \if internal_doc
+* @ingroup internal
+* \class VoronoiDiagramGenerator
+* Shane O'Sullivan C++ version of Stephan Fortune Voronoi diagram
+* generator
+* \endif
+*/
+class VoronoiDiagramGenerator{
 public:
 	VoronoiDiagramGenerator();
 	~VoronoiDiagramGenerator();
 
-	bool generateVoronoi(float *xValues, float *yValues, int numPoints, 
-		float minX, float maxX, float minY, float maxY, float minDist,bool genVectorInfo=true);
+	bool generateVoronoi(std::vector<VPoint> *_parent_sites,
+		double minX, double maxX, double minY, double maxY,
+		double minDist = 0);
 
-	//By default, the delaunay triangulation is NOT generated
-	void setGenerateDelaunay(bool genDel);
-
-	//By default, the voronoi diagram IS generated
-	void setGenerateVoronoi(bool genVor);
-
-	void resetIterator()
-	{
+	inline void resetIterator(){
 		iteratorEdges = allEdges;
 	}
 
-	bool getNext(float& x1, float& y1, float& x2, float& y2)
-	{
-		if(iteratorEdges == 0)
+	bool getNext(GraphEdge **e){
+		if (iteratorEdges == 0)
 			return false;
-		
-		x1 = iteratorEdges->x1;
-		x2 = iteratorEdges->x2;
-		y1 = iteratorEdges->y1;
-		y2 = iteratorEdges->y2;
 
-//		LOG<<"getNext returned the edge ("<<x1<<","<<y1<<") -> ("<<x2<<","<<y2<<")";
-
+		*e = iteratorEdges;
 		iteratorEdges = iteratorEdges->next;
-
-		return true;
-	}
-	
-	void resetDelaunayEdgesIterator()
-	{
-		iteratorDelaunayEdges = delaunayEdges;
-		//LOG<<"resetDelaunayEdgesIterator set iteratorDelaunayEdges = "<<iteratorDelaunayEdges;
-	}
-
-	bool getNextDelaunay(float& x1, float& y1, float& x2, float& y2)
-	{
-		if(iteratorDelaunayEdges == 0)
-		{
-			//LOG<<"iteratorDelaunayEdges = 0, returning false";
-			return false;
-		}
-		x1 = iteratorDelaunayEdges->x1;
-		x2 = iteratorDelaunayEdges->x2;
-		y1 = iteratorDelaunayEdges->y1;
-		y2 = iteratorDelaunayEdges->y2;
-
-		iteratorDelaunayEdges = iteratorDelaunayEdges->next;
-
-		//LOG<<"getNextDelaunay returned the edge ("<<x1<<","<<y1<<") -> ("<<x2<<","<<y2<<")";
-
 		return true;
 	}
 
-	void resetVertexPairIterator()
-	{
-		currentVertexLink = 0;
-	}
-
-	bool getNextVertexPair(float& x1, float& y1, float& x2, float& y2);
-
-	void resetVerticesIterator()
-	{
-		currentVertex = 0;
-	}
-
-	bool getNextVertex(float& x, float& y)
-	{
-		if(finalVertices == 0)
-			return false;
-
-		if(currentVertex >= sizeOfFinalVertices) return false;
-		x = finalVertices[currentVertex].x;
-		y = finalVertices[currentVertex].y;
-		currentVertex++;
-		return true;
-	}
-
-	void reset();
-
+	std::vector<VPoint> *parent_sites;
+	int n_parent_sites;
 
 private:
 	void cleanup();
 	void cleanupEdges();
-	char *getfree(struct Freelist *fl);	
-	struct	Halfedge *PQfind();
+	char *getfree(Freelist *fl);
+	Halfedge *PQfind();
 	int PQempty();
-	
-	struct	Halfedge **ELhash;
-	struct	Halfedge *HEcreate(), *ELleft(), *ELright(), *ELleftbnd();
-	struct	Halfedge *HEcreate(struct Edge *e,int pm);
 
+	Halfedge **ELhash;
+	Halfedge *HEcreate(), *ELleft(), *ELright(), *ELleftbnd();
+	Halfedge *HEcreate(Edge *e, int pm);
 
-	struct PointVDG PQ_min();
-	struct Halfedge *PQextractmin();	
-	void freeinit(struct Freelist *fl,int size);
-	void makefree(struct Freenode *curr,struct Freelist *fl);
+	VPoint PQ_min();
+	Halfedge *PQextractmin();
+	void freeinit(Freelist *fl, int size);
+	void makefree(Freenode *curr, Freelist *fl);
 	void geominit();
 	void plotinit();
-	bool voronoi(bool genVectorInfo);
-	void ref(struct Site *v);
-	void deref(struct Site *v);
-	void endpoint(struct Edge *e,int lr,struct Site * s);
 
-	void ELdelete(struct Halfedge *he);
-	struct Halfedge *ELleftbnd(struct PointVDG *p);
-	struct Halfedge *ELright(struct Halfedge *he);
-	void makevertex(struct Site *v);
-	void out_triple(struct Site *s1, struct Site *s2,struct Site * s3);
-	
-	void		PQinsert(struct Halfedge *he,struct Site * v, float offset);
-	void		PQdelete(struct Halfedge *he);
-	bool		ELinitialize();
-	void		ELinsert(struct	Halfedge *lb, struct Halfedge *newHe);
-	struct Halfedge * VoronoiDiagramGenerator::ELgethash(int b);
-	struct Halfedge *ELleft(struct Halfedge *he);
-	struct Site *leftreg(struct Halfedge *he);
-	void		out_site(struct Site *s);
-	bool		PQinitialize();
-	int			PQbucket(struct Halfedge *he);
-	void		clip_line(struct Edge *e);
-	char		*myalloc(unsigned n);
-	int			right_of(struct Halfedge *el,struct PointVDG *p);
+	// GS: removed the unused (always ==0) argument
+	bool voronoi(/*int triangulate*/);
+	void ref(Site *v);
+	void deref(Site *v);
+	void endpoint(Edge *e, int lr, Site * s);
 
-	struct Site *rightreg(struct Halfedge *he);
-	struct Edge *bisect(struct	Site *s1,struct	Site *s2);
-	float dist(struct Site *s,struct Site *t);
-	struct Site *intersect(struct Halfedge *el1, struct Halfedge *el2, struct PointVDG *p=0);
+	void ELdelete(Halfedge *he);
+	Halfedge *ELleftbnd(VPoint *p);
+	Halfedge *ELright(Halfedge *he);
+	void makevertex(Site *v);
 
-	void		out_bisector(struct Edge *e);
-	void		out_ep(struct Edge *e);
-	void		out_vertex(struct Site *v);
-	struct Site *nextone();
+	void PQinsert(Halfedge *he, Site * v, double offset);
+	void PQdelete(Halfedge *he);
+	bool ELinitialize();
+	void ELinsert(Halfedge *lb, Halfedge *newHe);
+	Halfedge * ELgethash(int b);
+	Halfedge *ELleft(Halfedge *he);
+	Site *leftreg(Halfedge *he);
+	bool PQinitialize();
+	int PQbucket(Halfedge *he);
+	void clip_line(Edge *e);
+	char *myalloc(unsigned n);
+	int right_of(Halfedge *el, VPoint *p);
 
-	void		pushGraphEdge(float x1, float y1, float x2, float y2);
-	void		pushDelaunayGraphEdge(float x1, float y1, float x2, float y2);
+	Site *rightreg(Halfedge *he);
+	Edge *bisect(Site *s1, Site *s2);
+	double dist(Site *s, Site *t);
 
+	// GS: 'p' is unused and always ==0 (see also comment by
+	//     S. O'Sullivan in the source file), so we remove it
+	Site *intersect(Halfedge *el1, Halfedge *el2 /*, VPoint *p=0*/);
 
-	void		openpl();
-	void		line(float x1, float y1, float x2, float y2);
-	void		circle(float x, float y, float radius);
-	void		range(float minX, float minY, float maxX, float maxY);
+	Site *nextone();
 
-	void  		insertVertexAddress(long vertexNum, struct Site* address);
-	void		insertVertexLink(long vertexNum, long vertexLinkedTo);
-	void		generateVertexLinks();
+	void pushGraphEdge(double x1, double y1, double x2, double y2,
+		Site *s1, Site *s2);
 
-	bool		genDelaunay;
-	bool		genVoronoi;
+	// Gregory Soyez: unused plotting methods
+	// void openpl();
+	// void circle(double x, double y, double radius);
+	// void range(double minX, double minY, double maxX, double maxY);
+	// 
+	// void out_bisector(Edge *e);
+	// void out_ep(Edge *e);
+	// void out_vertex(Site *v);
+	// void out_site(Site *s);
+	// 
+	// void out_triple(Site *s1, Site *s2,Site * s3);
 
-	struct		Freelist	hfl;
-	struct		Halfedge *ELleftend, *ELrightend;
-	int 		ELhashsize;
+	Freelist hfl;
+	Halfedge *ELleftend, *ELrightend;
+	int ELhashsize;
 
-	int			triangulate, sorted, plot, debug;
-	float		xmin, xmax, ymin, ymax, deltax, deltay;
+	int sorted, debug;
+	double xmin, xmax, ymin, ymax, deltax, deltay;
 
-	struct		Site	*sites;
-	int			nsites;
-	int			siteidx;
-	int			sqrt_nsites;
-	int			nvertices;
-	struct 		Freelist sfl;
-	struct		Site	*bottomsite;
+	Site *sites;
+	int nsites;
+	int siteidx;
+	int sqrt_nsites;
+	int nvertices;
+	Freelist sfl;
+	Site *bottomsite;
 
-	int			nedges;
-	struct		Freelist efl;
-	int			PQhashsize;
-	struct		Halfedge *PQhash;
-	int			PQcount;
-	int			PQmin;
+	int nedges;
+	Freelist efl;
+	int PQhashsize;
+	Halfedge *PQhash;
+	int PQcount;
+	int PQmin;
 
-	int			ntry, totalsearch;
-	float		pxmin, pxmax, pymin, pymax, cradius;
-	int			total_alloc;
+	int ntry, totalsearch;
+	double pxmin, pxmax, pymin, pymax, cradius;
+	int total_alloc;
 
-	float		borderMinX, borderMaxX, borderMinY, borderMaxY;
+	double borderMinX, borderMaxX, borderMinY, borderMaxY;
 
 	FreeNodeArrayList* allMemoryList;
 	FreeNodeArrayList* currentMemoryBlock;
 
-	GraphEdge*	allEdges;
-	GraphEdge*	iteratorEdges;
+	GraphEdge* allEdges;
+	GraphEdge* iteratorEdges;
 
-	GraphEdge*	delaunayEdges;
-	GraphEdge*	iteratorDelaunayEdges;
+	double minDistanceBetweenSites;
 
-	Point3*		vertexLinks; //lists all the vectors that each vector is directly connected to	
-	long		sizeOfVertexLinks;
-	
-	Site**		vertices;
-	long		sizeOfVertices ;
-
-	VertexLink* finalVertexLinks;
-	long 		sizeOfFinalVertexLinks;
-	long		currentVertexLink;
-
-	PointVDG	*finalVertices;	
-	long		sizeOfFinalVertices ;	
-	long 		currentVertex;
-
-	float		minDistanceBetweenSites;
-
-	//DEF_LOG
-	
+	static LimitedWarning _warning_degeneracy;
 };
 
-int scomp(const void *p1,const void *p2);
+int scomp(const void *p1, const void *p2);
+
 
 
 #endif

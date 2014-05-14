@@ -41,7 +41,7 @@ bool Island::onAdd()
 	
 
 	//set the area and vert. count
-	const int vertCount = 500;
+	const int vertCount = 100;
 	F32 area = 500;
 
 	//create array of vert. simObjects that will store the vert information and be output to file.

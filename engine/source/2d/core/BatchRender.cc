@@ -46,7 +46,8 @@ BatchRender::BatchRender() :
     mBlendColor( ColorF(1.0f,1.0f,1.0f,1.0f) ),
     mAlphaTestMode( -1.0f ),
     mWireframeMode( false ),
-    mBatchEnabled( true )
+    mBatchEnabled( true ),
+	mLightIndex(0)
 {
 }
 
@@ -278,6 +279,11 @@ void BatchRender::SubmitQuad(
         mIndexBuffer[mIndexCount++] = (U16)mVertexCount--;
         mIndexBuffer[mIndexCount++] = (U16)mVertexCount--;
 
+		// find the GL name for our lightmap texture
+		if (strstr(texture.getTextureKey(), "lightmap.PNG") != NULL){
+			mLightIndex = texture.getGLName();
+		}
+
         // Set strict order mode texture handle.
         mStrictOrderTextureHandle = texture;
     }
@@ -440,6 +446,25 @@ void BatchRender::flushInternal( void )
         if ( !mWireframeMode )
             glBindTexture( GL_TEXTURE_2D, mStrictOrderTextureHandle.getGLName() );
 
+		//enable stencil test for lighting effect
+		glEnable(GL_STENCIL_TEST);
+		glEnable(GL_ALPHA_TEST); //make sure the alpha is enabled
+
+		// Identify lights
+		if (mStrictOrderTextureHandle.getGLName() == mLightIndex && mLightIndex != 0){
+			glClear(GL_DEPTH_BUFFER_BIT);
+
+			glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
+			glDepthMask(GL_FALSE);
+			glStencilFunc(GL_NEVER, 1, 0xFF);
+			glStencilOp(GL_REPLACE, GL_KEEP, GL_KEEP);
+
+			glAlphaFunc(GL_GREATER, 0);
+
+			glStencilMask(0xFF);
+			glClear(GL_STENCIL_BUFFER_BIT);
+		}
+
         // Draw the triangles
         glDrawElements( GL_TRIANGLES, mIndexCount, GL_UNSIGNED_SHORT, mIndexBuffer );
 
@@ -544,6 +569,21 @@ void BatchRender::flushInternal( void )
         // Clear texture batch map.
         mTextureBatchMap.clear();
     }
+
+	glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
+	glDepthMask(GL_TRUE);
+	glStencilMask(0x00);
+
+	glAlphaFunc(GL_LEQUAL, 1);
+
+	glStencilFunc(GL_EQUAL, 0, 0xFF);
+
+	glStencilFunc(GL_EQUAL, 1, 0xFF);
+
+	// only disable stencil after other objects have been rendered
+	if (mStrictOrderTextureHandle.getGLName() != mLightIndex){
+		glDisable(GL_STENCIL_TEST);
+	}
 
     // Reset common render state.
     glDisableClientState( GL_VERTEX_ARRAY );
