@@ -377,10 +377,6 @@
     <ClCompile Include="..\..\source\graphics\TextureDictionary.cc" />
     <ClCompile Include="..\..\source\graphics\TextureHandle.cc" />
     <ClCompile Include="..\..\source\graphics\TextureManager.cc" />
-    <ClCompile Include="..\..\source\graphics\vmath.c" />
-    <ClCompile Include="..\..\source\graphics\Voronoi.cpp" />
-    <ClCompile Include="..\..\source\graphics\VoronoiDiagramGenerator.cpp" />
-    <ClCompile Include="..\..\source\graphics\VParabola.cpp" />
     <ClCompile Include="..\..\source\gui\containers\guiGridCtrl.cc" />
     <ClCompile Include="..\..\source\gui\guiArrayCtrl.cc" />
     <ClCompile Include="..\..\source\gui\guiBackgroundCtrl.cc" />
@@ -885,13 +881,6 @@
     <ClInclude Include="..\..\source\graphics\TextureManager.h" />
     <ClInclude Include="..\..\source\graphics\TextureManager_ScriptBinding.h" />
     <ClInclude Include="..\..\source\graphics\TextureObject.h" />
-    <ClInclude Include="..\..\source\graphics\VEdge.h" />
-    <ClInclude Include="..\..\source\graphics\VEvent.h" />
-    <ClInclude Include="..\..\source\graphics\vmath.h" />
-    <ClInclude Include="..\..\source\graphics\Voronoi.h" />
-    <ClInclude Include="..\..\source\graphics\VoronoiDiagramGenerator.h" />
-    <ClInclude Include="..\..\source\graphics\VParabola.h" />
-    <ClInclude Include="..\..\source\graphics\VPoint.h" />
     <ClInclude Include="..\..\source\gui\containers\guiGridCtrl.h" />
     <ClInclude Include="..\..\source\gui\guiArrayCtrl.h" />
     <ClInclude Include="..\..\source\gui\guiBackgroundCtrl.h" />
@@ -1291,9 +1280,6 @@
       <Project>{86cb2525-0cf3-40d3-bf42-a0a95035ee8c}</Project>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
     </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="..\..\source\graphics\vmath.inl" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
