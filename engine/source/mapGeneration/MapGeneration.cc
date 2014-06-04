@@ -14,6 +14,7 @@ Island::Island()
 	//vertices = NULL;
 }
 
+
 bool Island::onAdd()
 {
 	// Fail if the parent fails.  
@@ -23,10 +24,10 @@ bool Island::onAdd()
 	// Initializations
 	S32 i = 0, j = 0;
 
-	hexEdgeLength = 10;
+	hexEdgeLength = 100;
 	hexOffset = F32(hexEdgeLength*0.5) /*/ (1 / mSqrt(2))*/;
-	F32 transAmount = 3.75;
-	area = 500;
+	F32 transAmount = 37.5;
+	area = 5000;
 	seed = mRandI(0, S32_MAX); // the seed for our noise function
 	Con::printf("seed: %i", seed);
 
@@ -87,11 +88,17 @@ bool Island::onAdd()
 	oceanFill(&cells[3][3]);
 
 	
-	
+	//plant Trees
+	for (i = 0; i < cells.size(); ++i){
+		for (j = 0; j < cells[i].size(); ++j){
+			if (cells[i][j].biome == 4){
+				plantTrees(&cells[i][j]);
+			}
+		}
+	}
 	
 
 	// write cell info to file
-	Con::printf("%i, %i", cells[0].size(), cells[1].size());
 	std::ofstream outFile;
 	outFile.open("modules/LightModule/1/MapData/Cells.csv");
 	for (i = 0; i < cells.size(); ++i){
@@ -103,6 +110,12 @@ bool Island::onAdd()
 			outFile << cells[i][j].verts[3].x << "," << cells[i][j].verts[3].y << ",";
 			outFile << cells[i][j].verts[4].x << "," << cells[i][j].verts[4].y << ",";
 			outFile << cells[i][j].verts[5].x << "," << cells[i][j].verts[5].y << ",";
+			/*outFile << cells[i][j].verts[0].x << " " << cells[i][j].verts[0].y << " ";
+			outFile << cells[i][j].verts[1].x << " " << cells[i][j].verts[1].y << " ";
+			outFile << cells[i][j].verts[2].x << " " << cells[i][j].verts[2].y << " ";
+			outFile << cells[i][j].verts[3].x << " " << cells[i][j].verts[3].y << " ";
+			outFile << cells[i][j].verts[4].x << " " << cells[i][j].verts[4].y << " ";
+			outFile << cells[i][j].verts[5].x << " " << cells[i][j].verts[5].y << ",";*/
 			if (cells[i][j].adjacent[0] != NULL){
 				outFile << cells[i][j].adjacent[0]->center.x << "," << cells[i][j].adjacent[0]->center.y << ",";
 				outFile << cells[i][j].adjacent[1]->center.x << "," << cells[i][j].adjacent[1]->center.y << ",";
@@ -127,8 +140,18 @@ bool Island::onAdd()
 	}
 
 	outFile.close();
-	
 
+	//write trees to file
+	outFile.open("modules/LightModule/1/MapData/Trees.csv");
+	for (i = 0; i < cells.size(); ++i){
+		for (j = 0; j < cells[i].size(); ++j){
+			for (U32 k = 0; k < U32(cells[i][j].trees.size()); ++k){
+				outFile << cells[i][j].trees[k].x << "," << cells[i][j].trees[k].y << "," << cells[i][j].trees[k].radius << "\n";
+			}
+		}
+	}
+	outFile.close();
+	Con::printf("Island Generated");
 	return true;
 }
 
@@ -138,7 +161,8 @@ void Island::initPersistFields()
 	Parent::initPersistFields();
 
 	// Add my fields here.  
-	//addField("Vertices", TypeS32, Offset(vertices, Island), "");
+	addProtectedField("scene", TypeSimObjectPtr, Offset(scene, Island), &setScene, &defaultProtectedGetFn, &writeScene, "");
+	//addField("chunkManager", TypeSimObjectPtr, Offset(chunkManager, Island), "");
 	//addField("Corners", TypeString, Offset(corners, Island), "List of corners.");
 	//addField("Corners", , Offset(corners, Island), "List of corners.");
 }
@@ -165,10 +189,11 @@ F32 Island::genNoise(F32 x, F32 y){
 	y = y - area;
 
 	//generate noise
-	noise = scaled_octave_noise_3d(8.0, 0.0, 0.005f, 0.0, 1.0, x, y, (const float)(seed));
+	//Scale for area=500 and edgeLenght=10 is 0.005
+	noise = scaled_octave_noise_3d(8.0f, 0.0f, 0.0005f, 0.0f, 1.0f, x, y, (const float) (seed));
 
 	//make noise more "island-like"
-	r = mSqrt(x * x + y * y) / (area - (area*0.1));
+	r = mSqrt(x * x + y * y) / (area - (area*0.1f));
 	if (noise * exp(-mPow(r / 4, 2)) - mPow(r, 2) < 0){
 		noise = 0;
 	}
@@ -189,10 +214,11 @@ F32 Island::genLandNoise(F32 x, F32 y){
 	y = y - area;
 
 	//generate noise
-	noise = scaled_octave_noise_3d(8.0, 0.0, 0.015f, 0.0, 1.0, x, y, (const float) (seed));
+	//Scale for area=500 and edgeLenght=10 is 0.015
+	noise = scaled_octave_noise_3d(8.0f, 0.0f, 0.0015f, 0.0f, 1.0f, x, y, (const float) (seed));
 
 	// generate biome noise to be a smaller island
-	r = mSqrt(x * x + y * y) / (area - (area*0.1));
+	r = mSqrt(x * x + y * y) / (area - (area*0.1f));
 	if (noise * exp(-mPow(r / 4, 2)) - mPow(r, 2) < 0){
 		noise = 0;
 	}
@@ -298,14 +324,89 @@ void Island::oceanFill(HexCell* cell){
 void Island::assignLandBiome(HexCell* cell){
 
 	F32 forestThreshold = 0.035f;
-	F32 beachThreshold = 0.03f;
 
 	if (cell->center.landNoise > forestThreshold){
-		cell->biome = 4;
+		cell->biome = 4; // forest
 	}
 	else{
-		cell->biome = 3;
+		cell->biome = 3; // field
 	}
+}
+
+void Island::plantTrees(HexCell* cell){
+	F32 triArea = 0;
+	U32 numPoints = 10;
+	F32 rad = 10.0f;
+	U32 treeCount = 0;
+	F32 density = 0;
+
+	//plant trees in each triangle inside the cell
+	for (U32 i = 0; i < 6; ++i){
+		//find area of triangle and determine the number of trees to plant in the tri
+		if (i == 5){
+			triArea = 0.5f * getMax(mFabs(cell->verts[i].y - cell->verts[0].y), mFabs(cell->verts[i].y - cell->center.y)) * getMax(mFabs(cell->verts[i].x - cell->verts[0].x), mFabs(cell->verts[i].x - cell->center.x));
+			density = ((cell->verts[i].landNoise + cell->verts[0].landNoise + cell->center.landNoise) / 3.0f)*4.0f;
+		}
+		else{
+			triArea = 0.5f * getMax(mFabs(cell->verts[i].y - cell->verts[i + 1].y), mFabs(cell->verts[i].y - cell->center.y)) * getMax(mFabs(cell->verts[i].x - cell->verts[i + 1].x), mFabs(cell->verts[i].x - cell->center.x));
+			density = ((cell->verts[i].landNoise + cell->verts[0].landNoise + cell->center.landNoise) / 3.0f) * 4.0f;
+		}
+
+		//make sure the density stays below 1
+		if (density > 1){
+			density = 1;
+		}
+		
+		numPoints = U32(mFloor(F32(triArea / (M_PI * rad*rad)) * density));
+		treeCount = 0;
+
+		//plant the trees
+		while (treeCount < numPoints){
+			HexVert temp;
+			// check if it is the last triangle in the current hex
+			if (i == 5){
+				temp = HexVert(
+					mRandF(getMin(cell->verts[i].x, getMin(cell->verts[0].x, cell->center.x)), getMax(cell->verts[i].x, getMax(cell->verts[0].x, cell->center.x))),
+					mRandF(getMin(cell->verts[i].y, getMin(cell->verts[0].y, cell->center.y)), getMax(cell->verts[i].y, getMax(cell->verts[0].y, cell->center.y))));
+				
+				//check if the random point is within the bounds of the triangle
+				if (checkVert(cell->verts[i], cell->verts[0], temp) < 0 && checkVert(cell->verts[0], cell->center, temp) < 0 && checkVert(cell->center, cell->verts[i], temp) < 0){
+					//make sure the point is not overlapping another
+					if (temp.checkPosition(cell->trees, rad) == 0){
+						cell->trees.push_back(Tree(temp.x, temp.y, rad));
+						treeCount++;
+					}
+
+				}
+			}
+			else{
+				temp = HexVert(
+					mRandF(getMin(cell->verts[i].x, getMin(cell->verts[i + 1].x, cell->center.x)), getMax(cell->verts[i].x, getMax(cell->verts[i + 1].x, cell->center.x))),
+					mRandF(getMin(cell->verts[i].y, getMin(cell->verts[i + 1].y, cell->center.y)), getMax(cell->verts[i].y, getMax(cell->verts[i + 1].y, cell->center.y))));
+
+				//check if the random point is within the bounds of the triangle
+				if (checkVert(cell->verts[i], cell->verts[i + 1], temp) < 0 && checkVert(cell->verts[i + 1], cell->center, temp) < 0 && checkVert(cell->center, cell->verts[i], temp) < 0){
+					//make sure the point is not overlapping another
+					if (temp.checkPosition(cell->trees, rad) == 0){
+						cell->trees.push_back(Tree(temp.x, temp.y, rad));
+						treeCount++;
+					}
+
+				}
+			}
+			
+			
+
+			
+		}
+	}
+
+}
+
+F32 Island::checkVert(HexVert p1, HexVert p2, HexVert testVert){
+
+	return (p2.x - p1.x) * (testVert.y - p1.y) - (p2.y - p1.y) * (testVert.x - p1.x);
+
 }
 
 IMPLEMENT_CONOBJECT(Island);

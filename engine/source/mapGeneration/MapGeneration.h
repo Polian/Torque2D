@@ -16,7 +16,37 @@
 #include "collection/vectorQueue.h"
 #endif
 
+#ifndef _SCENE_H_
+#include "2d/scene/Scene.h"
+#endif
+
+#ifndef _SHAPE_VECTOR_H_
+#include "2d\sceneobject\ShapeVector.h"
+#endif
+
+#ifndef _PLATFORM_THREADS_THREAD_H_
+#include "platform\threads\thread.h"
+#endif
+
+#include <thread>
+
 //NOTE: Not regular Hexagons for the sake of more easily filling the given area
+
+class Tree{
+public:
+	F32 x, y;
+	F32 radius;
+
+public:
+	Tree(){};
+	virtual ~Tree(){};
+
+	Tree(F32 vert_x, F32 vert_y, F32 _rad){
+		x = vert_x;
+		y = vert_y;
+		radius = _rad;
+	};
+};
 
 class HexVert{
 
@@ -39,6 +69,28 @@ public:
 		landNoise = _landNoise;
 	};
 
+	HexVert(F32 _x, F32 _y){
+		x = _x;
+		y = _y;
+		xIndex = 0;
+		yIndex = 0;
+		elevation = 0;
+		landNoise = 0;
+	};
+
+	U32 checkPosition(Vector<Tree> trees, F32 radius){
+		F32 distance = 0;
+
+		for (U32 i = 0; i < U32(trees.size()); ++i){
+			distance = mSqrt(mPow(x - trees[i].x, 2) + mPow(y - trees[i].y, 2));
+
+			if (distance < radius){
+				return 1;
+			}
+		}
+		return 0;
+	};
+
 };
 
 class HexCell{
@@ -49,6 +101,7 @@ public:
 	HexVert verts[6];
 	HexVert center;
 	U32 biome;
+	Vector<Tree> trees;
 
 public:
 	HexCell(){};
@@ -134,9 +187,8 @@ public:
 			adjacent[5] = NULL;
 		}
 	};
+
 };
-
-
 
 // Island Class
 class Island : public SimObject
@@ -151,6 +203,7 @@ public:
 	U32 area;
 	Vector<Vector<HexVert>> points;
 	Vector<Vector<HexCell>> cells;
+	SimObjectPtr<Scene>  scene;
 
 	Island();
 	virtual ~Island() {};
@@ -166,6 +219,60 @@ public:
 	void assignCell(U32 i, U32 j);
 	void assignCellAdj(U32 i, U32 j);
 	void oceanFill(HexCell* cell);
+	void plantTrees(HexCell* cell);
+
+	F32 checkVert(HexVert p1, HexVert p2, HexVert testVert);
+
+	//scene
+	inline Scene* const     getScene(void) const                      { return scene; }
+
+	static bool             setScene(void* obj, const char* data)
+	{
+		Scene* pScene = dynamic_cast<Scene*>(Sim::findObject(data));
+		Island* object = static_cast<Island*>(obj);
+		if (pScene)
+		{
+			object->scene = pScene;
+		}
+		return false;
+	}
+	static bool             writeScene(void* obj, StringTableEntry pFieldName) { return false; }
+
+	void placeTest(){
+		S32 i, j, k;
+		for (i = 0; i < cells.size(); ++i){
+			for (j = 0; j < cells[i].size(); ++j){
+				for (k = 0; k < 6; ++k){
+					ShapeVector* shape = new ShapeVector();
+
+					shape->registerObject();
+					shape->setPosition(Vector2(cells[i][j].verts[k].x, cells[i][j].verts[k].y));
+					shape->setSize(Vector2("1 1"));
+					shape->setIsCircle(true);
+					shape->setLineColor(ColorF(0.5f, 0.9f, 0.2f, 1.0f));
+					shape->setCircleRadius(1.0f);
+					shape->setSceneLayer(4);
+
+					scene->addToScene(shape);
+				}
+				
+			}
+		}
+		
+	};
+
+	void threadTest(const char* text){
+		std::thread t(printMessage, text);
+		t.join();
+		//Thread t(&Island::printMessage, text, true, true);//(printMessage, "hello", true, true);
+		//t->run("printMessage");
+		
+	};
+
+	static void printMessage(const char* msg){
+		Con::printf("Message: %s", msg);
+		Con::executef(2,"scriptTest", msg);
+	};
 
 	DECLARE_CONOBJECT(Island);
 };

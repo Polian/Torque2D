@@ -447,7 +447,7 @@ void BatchRender::flushInternal( void )
             glBindTexture( GL_TEXTURE_2D, mStrictOrderTextureHandle.getGLName() );
 
 		//enable stencil test for lighting effect
-		glEnable(GL_STENCIL_TEST);
+		//glEnable(GL_STENCIL_TEST);
 		glEnable(GL_ALPHA_TEST); //make sure the alpha is enabled
 
 		// Identify lights
