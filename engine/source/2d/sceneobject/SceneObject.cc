@@ -325,6 +325,11 @@ void SceneObject::initPersistFields()
 
     /// Scene.
     addProtectedField("scene", TypeSimObjectPtr, Offset(mpScene, SceneObject), &setScene, &defaultProtectedGetFn, &writeScene, "");
+
+	/// My Fields
+	addField("Origin", TypeVector2, Offset(mOrigin, SceneObject), "The location where the object was originally placed.");
+	addField("Height3D", TypeF32, Offset(mHeight3D, SceneObject), "The height of the object from the ground plane.");
+	addField("Scale", TypeF32, Offset(mScale, SceneObject), "The height of the object from the ground plane.");
 }
 
 //-----------------------------------------------------------------------------

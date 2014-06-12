@@ -27,7 +27,7 @@ bool Island::onAdd()
 	hexEdgeLength = 100;
 	hexOffset = F32(hexEdgeLength*0.5) /*/ (1 / mSqrt(2))*/;
 	F32 transAmount = 37.5;
-	area = 5000;
+	area = 4000;
 	seed = mRandI(0, S32_MAX); // the seed for our noise function
 	Con::printf("seed: %i", seed);
 
@@ -169,13 +169,13 @@ void Island::initPersistFields()
 
 
 void Island::setPoint(U32 i, U32 j){
-
+	F32 offset = F32(area);
 	//offset vert placement every other row
 	if (i%2 == 0){
-		points[i].push_back(HexVert(j*hexEdgeLength, i*hexEdgeLength, j, i, genNoise(j*hexEdgeLength, i*hexEdgeLength), genLandNoise(j*hexEdgeLength, i*hexEdgeLength)));
+		points[i].push_back(HexVert(j*hexEdgeLength-offset, i*hexEdgeLength-offset, j, i, genNoise(j*hexEdgeLength, i*hexEdgeLength), genLandNoise(j*hexEdgeLength, i*hexEdgeLength)));
 	}
 	else{
-		points[i].push_back(HexVert(j*hexEdgeLength+hexOffset, i*hexEdgeLength, j, i, genNoise(j*hexEdgeLength+hexOffset, i*hexEdgeLength), genLandNoise(j*hexEdgeLength+hexOffset, i*hexEdgeLength)));
+		points[i].push_back(HexVert(j*hexEdgeLength+hexOffset - offset, i*hexEdgeLength - offset, j, i, genNoise(j*hexEdgeLength+hexOffset, i*hexEdgeLength), genLandNoise(j*hexEdgeLength+hexOffset, i*hexEdgeLength)));
 	}
 }
 
@@ -407,6 +407,11 @@ F32 Island::checkVert(HexVert p1, HexVert p2, HexVert testVert){
 
 	return (p2.x - p1.x) * (testVert.y - p1.y) - (p2.y - p1.y) * (testVert.x - p1.x);
 
+}
+
+void loadTaml(const char* name, const char* extension){
+	//Con::printf("Loading: %s.%s", name, extension);
+	Con::executef(3, "loadTaml", name, extension);
 }
 
 IMPLEMENT_CONOBJECT(Island);

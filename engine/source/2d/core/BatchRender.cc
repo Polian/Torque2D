@@ -47,7 +47,8 @@ BatchRender::BatchRender() :
     mAlphaTestMode( -1.0f ),
     mWireframeMode( false ),
     mBatchEnabled( true ),
-	mLightIndex(0)
+	mLightIndex(0),
+	mCustomPoly(false)
 {
 }
 
@@ -309,10 +310,62 @@ void BatchRender::SubmitQuad(
     mVertexBuffer[mVertexCount++]   = vertexPos1;
     mVertexBuffer[mVertexCount++]   = vertexPos3;
     mVertexBuffer[mVertexCount++]   = vertexPos2;
-    mTextureBuffer[mTextureCoordCount++] = texturePos0;
+    /*mTextureBuffer[mTextureCoordCount++] = texturePos0;
     mTextureBuffer[mTextureCoordCount++] = texturePos1;
     mTextureBuffer[mTextureCoordCount++] = texturePos3;
-    mTextureBuffer[mTextureCoordCount++] = texturePos2;
+    mTextureBuffer[mTextureCoordCount++] = texturePos2;*/
+
+	//is this a custom polygon?
+	const F32 side10 = mSqrt(mPow(vertexPos1.x - vertexPos0.x, 2) + mPow(vertexPos1.y - vertexPos0.y, 2));
+	const F32 side23 = mSqrt(mPow(vertexPos2.x - vertexPos3.x, 2) + mPow(vertexPos2.y - vertexPos3.y, 2));
+	const F32 side03 = mSqrt(mPow(vertexPos0.x - vertexPos3.x, 2) + mPow(vertexPos0.y - vertexPos3.y, 2));
+	const F32 side13 = mSqrt(mPow(vertexPos1.x - vertexPos3.x, 2) + mPow(vertexPos1.y - vertexPos3.y, 2));
+	const F32 side12 = mSqrt(mPow(vertexPos1.x - vertexPos2.x, 2) + mPow(vertexPos1.y - vertexPos2.y, 2));
+
+	const F32 angle0 = mAcos((mPow(side03, 2) + mPow(side10, 2) - mPow(side13, 2)) / (2 * side03 * side10));
+	const F32 angle2 = mAcos((mPow(side23, 2) + mPow(side12, 2) - mPow(side13, 2)) / (2 * side23 * side12));
+
+	//is not a custom poly
+	if (mRound(angle0*(180 / M_PI_F)) == 90 && mRound(angle2*(180 / M_PI_F)) == 90){
+		mTextureBuffer[mTextureCoordCount++] = texturePos0;
+		mTextureBuffer[mTextureCoordCount++] = texturePos1;
+		mTextureBuffer[mTextureCoordCount++] = texturePos3;
+		mTextureBuffer[mTextureCoordCount++] = texturePos2;
+
+		mCustomPoly = false;
+	}
+
+	//is a custom poly
+	else{
+		const F32 w1 = mSqrt(mPow(vertexPos2.x - vertexPos3.x, 2) + mPow(vertexPos2.y - vertexPos3.y, 2));
+		const F32 w2 = mSqrt(mPow(vertexPos1.x - vertexPos0.x, 2) + mPow(vertexPos1.y - vertexPos0.y, 2));
+
+		//0
+		mTexBuffer[0] = 0;
+		mTexBuffer[1] = w2;
+		mTexBuffer[2] = 0;
+		mTexBuffer[3] = w2;
+
+		//1
+		mTexBuffer[4] = w2;
+		mTexBuffer[5] = w2;
+		mTexBuffer[6] = 0;
+		mTexBuffer[7] = w2;
+
+		//3
+		mTexBuffer[8] = 0;
+		mTexBuffer[9] = 0;
+		mTexBuffer[10] = 0;
+		mTexBuffer[11] = w1;
+
+		//2
+		mTexBuffer[12] = w1;
+		mTexBuffer[13] = 0;
+		mTexBuffer[14] = 0;
+		mTexBuffer[15] = w1;
+
+		mCustomPoly = true;
+	}
 
     // Stats.
     mpDebugStats->batchTrianglesSubmitted+=2;
@@ -425,7 +478,14 @@ void BatchRender::flushInternal( void )
     // Enable vertex and texture arrays.
     glEnableClientState( GL_VERTEX_ARRAY );
     glVertexPointer( 2, GL_FLOAT, 0, mVertexBuffer );
-    glTexCoordPointer( 2, GL_FLOAT, 0, mTextureBuffer );
+    /*glTexCoordPointer( 2, GL_FLOAT, 0, mTextureBuffer );*/
+	if (mCustomPoly == true){
+		glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST);
+		glTexCoordPointer(4, GL_FLOAT, 0, mTexBuffer);
+	}
+	else{
+		glTexCoordPointer(2, GL_FLOAT, 0, mTextureBuffer);
+	}
 
     // Use the texture coordinates if not in wireframe mode.
     if ( !mWireframeMode )

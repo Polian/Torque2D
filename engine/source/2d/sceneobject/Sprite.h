@@ -38,6 +38,9 @@ private:
     bool mFlipX;
     bool mFlipY;
 
+	bool mUseCustom;
+	Vector2 mCustomPoly[4];
+
 public:
     Sprite();
     virtual ~Sprite();
@@ -51,6 +54,10 @@ public:
     void setFlipY( const bool flipY )                   { setFlip( mFlipX, flipY ); }
     inline bool getFlipX( void ) const                  { return mFlipX; }
     inline bool getFlipY( void ) const                  { return mFlipY; }
+
+	/// Custom functions
+	void setSpritePolyCustom(const char* pCustomPolygon);
+	void setUseCustom(const bool choice)	{ mUseCustom = choice; }
 
     virtual void sceneRender( const SceneRenderState* pSceneRenderState, const SceneRenderRequest* pSceneRenderRequest, BatchRender* pBatchRenderer );
 

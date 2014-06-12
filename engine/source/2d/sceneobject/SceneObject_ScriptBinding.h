@@ -4151,4 +4151,46 @@ ConsoleMethodWithDocs(SceneObject, safeDelete, ConsoleVoid, 2, 2, ())
     object->safeDelete();
 }
 
+//-----------------------------------------------------------------------------
+
+ConsoleMethod(SceneObject, setOrigin, void, 3, 3, "(Vector2 Origin) set the position of the origin.")
+{
+	object->setOrigin(argv[2]);
+}
+
+//-----------------------------------------------------------------------------
+
+ConsoleMethod(SceneObject, getOrigin, const char*, 2, 2, "() get the origin for the specified sceneobject.")
+{
+	return object->getOrigin().scriptThis();
+}
+
+//-----------------------------------------------------------------------------
+
+ConsoleMethod(SceneObject, setHeight3D, void, 3, 3, "(float Height) set the height from the gound plane.")
+{
+	object->setHeight3D(dAtof(argv[2]));
+}
+
+//-----------------------------------------------------------------------------
+
+ConsoleMethod(SceneObject, getHeight3D, F32, 2, 2, "() get the height for the specified sceneobject.")
+{
+	return object->getHeight3D();
+}
+
+//-----------------------------------------------------------------------------
+
+ConsoleMethod(SceneObject, setScale, void, 3, 3, "(float Scale) set the scale of the object.")
+{
+	object->setScale(dAtof(argv[2]));
+}
+
+//-----------------------------------------------------------------------------
+
+ConsoleMethod(SceneObject, getScale, F32, 2, 2, "() get the scale for the specified sceneobject.")
+{
+	return object->getScale();
+}
+
 ConsoleMethodGroupEndWithDocs(SceneObject)

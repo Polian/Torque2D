@@ -1,11 +1,13 @@
 //ConsoleMethodGroupBeginWithDocs(Island)
 
-ConsoleMethodWithDocs(Island, placeTest, ConsoleVoid, 2, 2, ())
+ConsoleMethodWithDocs(Island, placeTrees, ConsoleVoid, 2, 2, ())
 {
-	object->placeTest();
+	object->placeTrees();
 }
 
-ConsoleMethodWithDocs(Island, threadTest, ConsoleVoid, 2, 3, ())
+ConsoleFunctionWithDocs(threadedLoad, ConsoleVoid, 2, 4, ())
 {
-	object->threadTest(argv[2]);
+	//argv[2] is the file name and argv[3] is the extension
+	std::thread t(loadTaml, argv[1], argv[2]);
+	t.join();
 }

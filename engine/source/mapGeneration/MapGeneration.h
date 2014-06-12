@@ -3,6 +3,7 @@
 
 #include <iostream>
 #include <fstream>
+#include <thread>
 
 #ifndef _SIMBASE_H_  
 #include "sim/simBase.h"  
@@ -28,7 +29,9 @@
 #include "platform\threads\thread.h"
 #endif
 
-#include <thread>
+#ifndef _CHUNK_MANAGER_H_
+#include "ChunkManager.h"
+#endif
 
 //NOTE: Not regular Hexagons for the sake of more easily filling the given area
 
@@ -125,6 +128,14 @@ public:
 			verts[4] = points[center.yIndex-1][center.xIndex];
 			verts[5] = points[center.yIndex - 1][center.xIndex - 1];
 		}
+		else{
+			verts[0] = HexVert(0, 0);
+			verts[1] = HexVert(0, 0);
+			verts[2] = HexVert(0, 0);
+			verts[3] = HexVert(0, 0);
+			verts[4] = HexVert(0, 0);
+			verts[5] = HexVert(0, 0);
+		}
 		
 	};
 
@@ -138,6 +149,14 @@ public:
 			verts[3] = points[center.yIndex][center.xIndex+1];
 			verts[4] = points[center.yIndex - 1][center.xIndex+1];
 			verts[5] = points[center.yIndex - 1][center.xIndex];
+		}
+		else{
+			verts[0] = HexVert(0, 0);
+			verts[1] = HexVert(0, 0);
+			verts[2] = HexVert(0, 0);
+			verts[3] = HexVert(0, 0);
+			verts[4] = HexVert(0, 0);
+			verts[5] = HexVert(0, 0);
 		}
 
 	};
@@ -201,9 +220,11 @@ public:
 	F32 hexOffset;
 	U32 seed;
 	U32 area;
+	ChunkManager manager;
 	Vector<Vector<HexVert>> points;
 	Vector<Vector<HexCell>> cells;
 	SimObjectPtr<Scene>  scene;
+	
 
 	Island();
 	virtual ~Island() {};
@@ -233,24 +254,26 @@ public:
 		if (pScene)
 		{
 			object->scene = pScene;
+			object->manager = ChunkManager(object->area, object->scene);
+			//object->manager.initChunks();
 		}
 		return false;
 	}
 	static bool             writeScene(void* obj, StringTableEntry pFieldName) { return false; }
 
-	void placeTest(){
+	void placeTrees(){
 		S32 i, j, k;
 		for (i = 0; i < cells.size(); ++i){
 			for (j = 0; j < cells[i].size(); ++j){
-				for (k = 0; k < 6; ++k){
+				for (k = 0; k < cells[i][j].trees.size(); ++k){
 					ShapeVector* shape = new ShapeVector();
 
 					shape->registerObject();
-					shape->setPosition(Vector2(cells[i][j].verts[k].x, cells[i][j].verts[k].y));
+					shape->setPosition(Vector2(cells[i][j].trees[k].x, cells[i][j].trees[k].y));
 					shape->setSize(Vector2("1 1"));
 					shape->setIsCircle(true);
 					shape->setLineColor(ColorF(0.5f, 0.9f, 0.2f, 1.0f));
-					shape->setCircleRadius(1.0f);
+					shape->setCircleRadius(0.5f);
 					shape->setSceneLayer(4);
 
 					scene->addToScene(shape);
@@ -261,23 +284,11 @@ public:
 		
 	};
 
-	void threadTest(const char* text){
-		std::thread t(printMessage, text);
-		t.join();
-		//Thread t(&Island::printMessage, text, true, true);//(printMessage, "hello", true, true);
-		//t->run("printMessage");
-		
-	};
-
-	static void printMessage(const char* msg){
-		Con::printf("Message: %s", msg);
-		Con::executef(2,"scriptTest", msg);
-	};
-
 	DECLARE_CONOBJECT(Island);
 };
 
 
-
+void loadTaml(const char* name, const char* extension);
+void unloadTaml(const char* name, const char* extension);
 
 #endif

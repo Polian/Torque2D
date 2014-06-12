@@ -220,6 +220,11 @@ protected:
     U32                     mSerialId;
     StringTableEntry        mRenderGroup;
 
+	/// My fields
+	Vector2					mOrigin;
+	F32						mScale;
+	F32						mHeight3D;
+
 protected:
     static S32 QSORT_CALLBACK sceneObjectLayerDepthSort(const void* a, const void* b);
 
@@ -560,6 +565,16 @@ public:
     inline U32              getWorldQueryKey( void ) const              { return mWorldQueryKey; }
     static U32              getGlobalSceneObjectCount( void );
     inline U32              getSerialId( void ) const                   { return mSerialId; }
+
+	/// My field getters and setters
+	Vector2	getOrigin()	{ return mOrigin; }
+	void	setOrigin(Vector2 point)	{ mOrigin = point; }
+
+	F32	getScale()	{ return mScale; }
+	void	setScale(F32 pScale)	{ mScale = pScale; }
+
+	F32	getHeight3D()	{ return mHeight3D; }
+	void	setHeight3D(F32 pHeight)	{ mHeight3D = pHeight; }
 
     // Read / Write fields.
     virtual bool            writeField(StringTableEntry fieldname, const char* value);

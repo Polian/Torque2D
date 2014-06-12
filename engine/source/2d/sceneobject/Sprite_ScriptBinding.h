@@ -94,4 +94,13 @@ ConsoleMethodWithDocs(Sprite, getFlipY, ConsoleBool, 2, 2, ())
    return object->getFlipY();
 }
 
+//-----------------------------------------------------------------------------
+
+ConsoleMethod(Sprite, setSpritePolyCustom, void, 3, 3, "(poly-definition) Define a custom polygon for the sprite ."
+	"@return no value")
+{
+	object->setUseCustom(true);
+	object->setSpritePolyCustom(argv[2]);
+}
+
 ConsoleMethodGroupEndWithDocs(Sprite)

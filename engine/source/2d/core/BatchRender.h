@@ -114,6 +114,9 @@ private:
 
 	U32					mLightIndex;
 
+	bool				mCustomPoly;
+	GLfloat				mTexBuffer[BATCHRENDER_BUFFERSIZE];
+
 public:
     BatchRender();
     virtual ~BatchRender();

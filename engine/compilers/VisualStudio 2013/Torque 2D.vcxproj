@@ -439,6 +439,7 @@
     <ClCompile Include="..\..\source\io\zip\zipObject.cc" />
     <ClCompile Include="..\..\source\io\zip\zipSubStream.cc" />
     <ClCompile Include="..\..\source\io\zip\zipTempStream.cc" />
+    <ClCompile Include="..\..\source\mapGeneration\ChunkManager.cc" />
     <ClCompile Include="..\..\source\mapGeneration\MapGeneration.cc" />
     <ClCompile Include="..\..\source\math\math_ScriptBinding.cc" />
     <ClCompile Include="..\..\source\math\mPoint.cpp" />
@@ -948,6 +949,7 @@
     <ClInclude Include="..\..\source\io\zip\zipStatFilter.h" />
     <ClInclude Include="..\..\source\io\zip\zipSubStream.h" />
     <ClInclude Include="..\..\source\io\zip\zipTempStream.h" />
+    <ClInclude Include="..\..\source\mapGeneration\ChunkManager.h" />
     <ClInclude Include="..\..\source\mapGeneration\MapGeneration.h" />
     <ClInclude Include="..\..\source\mapGeneration\MapGeneration_ScriptBinding.h" />
     <ClInclude Include="..\..\source\math\box_ScriptBinding.h" />
