@@ -1391,4 +1391,35 @@ ConsoleMethodWithDocs(CompositeSprite, pickRay, ConsoleString, 4, 6, (startx/y, 
     return pBuffer;
 }
 
+//-----------------------------------------------------------------------------
+
+/*! Set the sprite circle points for tree composites.
+@return No return Value.
+*/
+ConsoleMethodWithDocs(CompositeSprite, setSpriteCirclePoints, ConsoleVoid, 3, 3, (points))
+{
+	object->setSpriteCirclePoints(argv[2]);
+}
+
+//-----------------------------------------------------------------------------
+
+/*! Get the sprite circle points for tree composites.
+@return No return Value.
+*/
+ConsoleMethodWithDocs(CompositeSprite, getSpriteCirclePoints, ConsoleString, 2, 2, ())
+{
+	return object->getSpriteCirclePoints();
+}
+
+//-----------------------------------------------------------------------------
+
+/*! Set custom poly shape for the selected sprite.
+@return No return Value.
+*/
+ConsoleMethodWithDocs(CompositeSprite, setSpriteCustomPoly, ConsoleVoid, 3, 3, "(poly-definition) Define a custom polygon for the sprite ."
+	"@return no value")
+{
+	object->setSpriteCustomPoly(argv[2]);
+}
+
 ConsoleMethodGroupEndWithDocs(CompositeSprite)

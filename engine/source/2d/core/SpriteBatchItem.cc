@@ -132,6 +132,9 @@ void SpriteBatchItem::resetState( void )
 
     mUserData = NULL;
 
+	mPoints = NULL;
+	mUseCustom = false;
+
     // Require self ticking.
     mSelfTick = true;
 }
@@ -221,12 +224,47 @@ void SpriteBatchItem::render( BatchRender* pBatchRenderer, const SceneRenderRequ
     pBatchRenderer->setAlphaTestMode( pSceneRenderRequest );
 
     // Render.
-    Parent::render( mFlipX, mFlipY,
-                    mRenderOOBB[0],
-                    mRenderOOBB[1],
-                    mRenderOOBB[2],
-                    mRenderOOBB[3],
-                    pBatchRenderer );
+	if (mUseCustom == true){
+		/*mRenderOOBB[0] = mCustomPoly[0];
+		mRenderOOBB[1].x = mCustomPoly[2].x;
+		mRenderOOBB[1].y = mCustomPoly[0].y;
+		mRenderOOBB[2].x = mCustomPoly[2].x;
+		mRenderOOBB[2].y = mCustomPoly[2].y;
+		mRenderOOBB[3].x = mCustomPoly[0].x;
+		mRenderOOBB[3].y = mCustomPoly[2].y;*/
+
+		/*Vector2 position;
+		Vector2 wp0 = getWorldPoint(mCustomPoly[0]);
+		Vector2 wp2 = getWorldPoint(mCustomPoly[2]);
+		position.x = wp0.x - wp2.x;
+		position.y = wp0.y - wp2.y;*/
+		//setPosition(mCustomPoly[2]);
+
+		CoreMath::mOOBBtoAABB(mRenderOOBB, mRenderAABB);
+		/*Con::printf("(%f, %f), (%f, %f), (%f, %f), (%f, %f) versus (%f, %f), (%f, %f), (%f, %f), (%f, %f)", 
+			mRenderOOBB[0].x, mRenderOOBB[0].y, mRenderOOBB[1].x, mRenderOOBB[1].y, 
+			mRenderOOBB[2].x, mRenderOOBB[2].y, mRenderOOBB[3].x, mRenderOOBB[3].y, 
+			mCustomPoly[0].x, mCustomPoly[0].y, mCustomPoly[1].x, mCustomPoly[1].y,
+			mCustomPoly[2].x, mCustomPoly[2].y, mCustomPoly[3].x, mCustomPoly[3].y);*/
+
+		Parent::render(mFlipX, mFlipY,
+			mCustomPoly[0],
+			mCustomPoly[1],
+			mCustomPoly[2],
+			mCustomPoly[3],
+			pBatchRenderer,
+			true);
+	}
+	else{
+		// Let the parent render.
+		Parent::render(mFlipX, mFlipY,
+			mRenderOOBB[0],
+			mRenderOOBB[1],
+			mRenderOOBB[2],
+			mRenderOOBB[3],
+			pBatchRenderer);
+	}
+    
 }
 
 //------------------------------------------------------------------------------
@@ -748,4 +786,33 @@ void SpriteBatchItem::WriteCustomTamlSchema( const AbstractClassRep* pClassRep, 
     pBatchItemLogicalPosition->SetAttribute( "name", spriteLogicalPositionName );
     pBatchItemLogicalPosition->SetAttribute( "type", "xs:string" );
     pBatchItemComplexTypeElement->LinkEndChild( pBatchItemLogicalPosition );
+}
+
+//------------------------------------------------------------------------------
+
+void SpriteBatchItem::setSpritePolyCustom(const char* pCustomPolygon)
+{
+	//first vert
+	F32 x = dAtof(Utility::mGetStringElement(pCustomPolygon, 0));
+	F32 y = dAtof(Utility::mGetStringElement(pCustomPolygon, 1));
+
+	mCustomPoly[0].Set(x, y);
+
+	//second vert.
+	x = dAtof(Utility::mGetStringElement(pCustomPolygon, 2));
+	y = dAtof(Utility::mGetStringElement(pCustomPolygon, 3));
+
+	mCustomPoly[1].Set(x, y);
+
+	//third vert.
+	x = dAtof(Utility::mGetStringElement(pCustomPolygon, 4));
+	y = dAtof(Utility::mGetStringElement(pCustomPolygon, 5));
+
+	mCustomPoly[2].Set(x, y);
+
+	//fourth vert.
+	x = dAtof(Utility::mGetStringElement(pCustomPolygon, 6));
+	y = dAtof(Utility::mGetStringElement(pCustomPolygon, 7));
+
+	mCustomPoly[3].Set(x, y);
 }

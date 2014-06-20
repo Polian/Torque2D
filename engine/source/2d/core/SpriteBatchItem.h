@@ -229,6 +229,11 @@ protected:
 
     void*               mUserData;
 
+	///Custom data for tree composites
+	StringTableEntry	mPoints;
+	Vector2             mCustomPoly[4];
+	bool				mUseCustom;
+
 public:
     SpriteBatchItem();
     virtual ~SpriteBatchItem();
@@ -319,6 +324,13 @@ protected:
 
     void onTamlCustomWrite( TamlCustomNode* pParentNode );
     void onTamlCustomRead( const TamlCustomNode* pSpriteNode );
+
+	///Custom functions for tree composites
+	void setCirclePoints(const char* pPoints){ mPoints = StringTable->insert(pPoints); };
+	StringTableEntry getCirclePoints(){ return mPoints; };
+
+	void setUseCustom(const bool choice)	{ mUseCustom = choice; }
+	void setSpritePolyCustom(const char* pCustomPolygon);
 };
 
 //------------------------------------------------------------------------------  

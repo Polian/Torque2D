@@ -184,6 +184,12 @@ public:
     void setSpriteName( const char* pName );
     StringTableEntry getSpriteName( void ) const;
 
+	///Custom Functions for Tree composites
+	void setSpriteCirclePoints(const char* pPoints);
+	StringTableEntry getSpriteCirclePoints(void) const;
+
+	void setSpriteCustomPoly(const char* pSpritePoints);
+
     static void WriteCustomTamlSchema( const AbstractClassRep* pClassRep, TiXmlElement* pParentElement );
 
 protected:

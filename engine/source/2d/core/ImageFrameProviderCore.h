@@ -110,6 +110,16 @@ public:
         const Vector2& vertexPos3,
         BatchRender* pBatchRenderer ) const;
 
+	virtual void render(
+		const bool flipX,
+		const bool flipY,
+		const Vector2& vertexPos0,
+		const Vector2& vertexPos1,
+		const Vector2& vertexPos2,
+		const Vector2& vertexPos3,
+		BatchRender* pBatchRenderer,
+		const bool custom) const;
+
     void renderGui( GuiControl& owner, Point2I offset, const RectI &updateRect ) const;
 
     /// Static-Image Frame.

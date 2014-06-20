@@ -255,6 +255,20 @@ public:
             TextureHandle& texture,
             const ColorF& color = ColorF(-1.0f, -1.0f, -1.0f) );
 
+
+	void SubmitQuad(
+		const Vector2& vertexPos0,
+		const Vector2& vertexPos1,
+		const Vector2& vertexPos2,
+		const Vector2& vertexPos3,
+		const Vector2& texturePos0,
+		const Vector2& texturePos1,
+		const Vector2& texturePos2,
+		const Vector2& texturePos3,
+		TextureHandle& texture,
+		const bool custom,
+		const ColorF& color = ColorF(-1.0f, -1.0f, -1.0f));
+
     /// Render a quad immediately without affecting current batch.
     /// All render state should be set beforehand directly.
     /// Vertex and textures are indexed as:

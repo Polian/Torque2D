@@ -1055,6 +1055,43 @@ StringTableEntry SpriteBatch::getSpriteName( void ) const
 
 //------------------------------------------------------------------------------
 
+void SpriteBatch::setSpriteCirclePoints(const char* pPoints)
+{
+	// Finish if a sprite is not selected.
+	if (!checkSpriteSelected())
+		return;
+
+	// Set name.
+	mSelectedSprite->setCirclePoints(pPoints);
+}
+
+//------------------------------------------------------------------------------
+
+StringTableEntry SpriteBatch::getSpriteCirclePoints(void) const
+{
+	// Finish if a sprite is not selected.
+	if (!checkSpriteSelected())
+		return StringTable->EmptyString;
+
+	// Get name.
+	return mSelectedSprite->getCirclePoints();
+}
+
+//------------------------------------------------------------------------------
+
+void SpriteBatch::setSpriteCustomPoly(const char* pCustomPoints)
+{
+	// Finish if a sprite is not selected.
+	if (!checkSpriteSelected())
+		return;
+
+	// Set custom points.
+	mSelectedSprite->setUseCustom(true);
+	mSelectedSprite->setSpritePolyCustom(pCustomPoints);
+}
+
+//------------------------------------------------------------------------------
+
 SpriteBatchItem* SpriteBatch::createSprite( void )
 {
     // Debug Profiling.

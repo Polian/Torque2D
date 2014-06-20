@@ -43,7 +43,8 @@ IMPLEMENT_CONOBJECT(Sprite);
 
 Sprite::Sprite() :
     mFlipX(false),
-    mFlipY(false)
+    mFlipY(false),
+	mUseCustom(false)
 {
 }
 
@@ -111,7 +112,8 @@ void Sprite::sceneRender( const SceneRenderState* pSceneRenderState, const Scene
 			mCustomPoly[1],
 			mCustomPoly[2],
 			mCustomPoly[3],
-			pBatchRenderer);
+			pBatchRenderer,
+			true);
 	}
 	else{
 		// Let the parent render.
