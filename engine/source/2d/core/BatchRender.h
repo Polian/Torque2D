@@ -115,7 +115,8 @@ private:
 	U32					mLightIndex;
 
 	bool				mCustomPoly;
-	GLfloat				mTexBuffer[BATCHRENDER_BUFFERSIZE];
+	
+	Vector4F			mTexBuffer[BATCHRENDER_BUFFERSIZE];
 
 public:
     BatchRender();

@@ -282,6 +282,11 @@ void BatchRender::SubmitQuad(
 		mIndexBuffer[mIndexCount++] = (U16) mVertexCount--;
 		mIndexBuffer[mIndexCount++] = (U16) mVertexCount--;
 
+		// find the GL name for our lightmap texture
+		if (strstr(texture.getTextureKey(), "lightmap") != NULL){
+			mLightIndex = texture.getGLName();
+		}
+
 		// Set strict order mode texture handle.
 		mStrictOrderTextureHandle = texture;
 	}
@@ -399,7 +404,7 @@ void BatchRender::SubmitQuad(
 		mIndexBuffer[mIndexCount++] = (U16) mVertexCount--;
 
 		// find the GL name for our lightmap texture
-		if (strstr(texture.getTextureKey(), "lightmap.PNG") != NULL){
+		if (strstr(texture.getTextureKey(), "lightmap") != NULL){
 			mLightIndex = texture.getGLName();
 		}
 
@@ -428,20 +433,6 @@ void BatchRender::SubmitQuad(
 	mVertexBuffer[mVertexCount++] = vertexPos1;
 	mVertexBuffer[mVertexCount++] = vertexPos3;
 	mVertexBuffer[mVertexCount++] = vertexPos2;
-	/*mTextureBuffer[mTextureCoordCount++] = texturePos0;
-	mTextureBuffer[mTextureCoordCount++] = texturePos1;
-	mTextureBuffer[mTextureCoordCount++] = texturePos3;
-	mTextureBuffer[mTextureCoordCount++] = texturePos2;*/
-
-	//is this a custom polygon?
-	const F32 side10 = mSqrt(mPow(vertexPos1.x - vertexPos0.x, 2) + mPow(vertexPos1.y - vertexPos0.y, 2));
-	const F32 side23 = mSqrt(mPow(vertexPos2.x - vertexPos3.x, 2) + mPow(vertexPos2.y - vertexPos3.y, 2));
-	const F32 side03 = mSqrt(mPow(vertexPos0.x - vertexPos3.x, 2) + mPow(vertexPos0.y - vertexPos3.y, 2));
-	const F32 side13 = mSqrt(mPow(vertexPos1.x - vertexPos3.x, 2) + mPow(vertexPos1.y - vertexPos3.y, 2));
-	const F32 side12 = mSqrt(mPow(vertexPos1.x - vertexPos2.x, 2) + mPow(vertexPos1.y - vertexPos2.y, 2));
-
-	const F32 angle0 = mAcos((mPow(side03, 2) + mPow(side10, 2) - mPow(side13, 2)) / (2 * side03 * side10));
-	const F32 angle2 = mAcos((mPow(side23, 2) + mPow(side12, 2) - mPow(side13, 2)) / (2 * side23 * side12));
 
 	//is not a custom poly
 	if (custom == false){
@@ -459,28 +450,16 @@ void BatchRender::SubmitQuad(
 		const F32 w2 = mSqrt(mPow(vertexPos1.x - vertexPos0.x, 2) + mPow(vertexPos1.y - vertexPos0.y, 2));
 
 		//0
-		mTexBuffer[0] = 0;
-		mTexBuffer[1] = w2;
-		mTexBuffer[2] = 0;
-		mTexBuffer[3] = w2;
+		mTexBuffer[mTextureCoordCount++] = Vector4F(texturePos0.x*w2, texturePos0.y*w2, 0, w2);
 
 		//1
-		mTexBuffer[4] = w2;
-		mTexBuffer[5] = w2;
-		mTexBuffer[6] = 0;
-		mTexBuffer[7] = w2;
+		mTexBuffer[mTextureCoordCount++] = Vector4F(texturePos1.x*w2, texturePos1.y*w2, 0, w2);
 
 		//3
-		mTexBuffer[8] = 0;
-		mTexBuffer[9] = 0;
-		mTexBuffer[10] = 0;
-		mTexBuffer[11] = w1;
+		mTexBuffer[mTextureCoordCount++] = Vector4F(texturePos3.x*w1, texturePos3.y*w1, 0, w1);
 
 		//2
-		mTexBuffer[12] = w1;
-		mTexBuffer[13] = 0;
-		mTexBuffer[14] = 0;
-		mTexBuffer[15] = w1;
+		mTexBuffer[mTextureCoordCount++] = Vector4F(texturePos2.x*w1, texturePos2.y*w1, 0, w1);
 
 		mCustomPoly = true;
 	}
@@ -593,13 +572,12 @@ void BatchRender::flushInternal( void )
 
     // Enable vertex and texture arrays.
     glEnableClientState( GL_VERTEX_ARRAY );
-    glVertexPointer( 2, GL_FLOAT, 0, mVertexBuffer );
-    /*glTexCoordPointer( 2, GL_FLOAT, 0, mTextureBuffer );*/
+	glVertexPointer(2, GL_FLOAT, 0, mVertexBuffer);
+    
 	//set up texture coords based on whether it is custom or not
 	if (mCustomPoly == true){
+		glTexCoordPointer(4, GL_FLOAT, sizeof(Vector4F), mTexBuffer);
 		glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST);
-		glTexCoordPointer(4, GL_FLOAT, 0, mTexBuffer);
-
 	}
 	else{
 		glTexCoordPointer(2, GL_FLOAT, 0, mTextureBuffer);
