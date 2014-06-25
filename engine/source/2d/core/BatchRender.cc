@@ -532,7 +532,7 @@ void BatchRender::flushInternal( void )
     {
         // Disable texturing.    
         glDisable( GL_TEXTURE_2D );
-
+		
         // Set the polygon mode to line.
         glPolygonMode( GL_FRONT_AND_BACK, GL_LINE );
     }

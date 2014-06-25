@@ -29,9 +29,7 @@
 #include "platform\threads\thread.h"
 #endif
 
-#ifndef _CHUNK_MANAGER_H_
-#include "ChunkManager.h"
-#endif
+#include <png.h>
 
 //NOTE: Not regular Hexagons for the sake of more easily filling the given area
 
@@ -220,7 +218,6 @@ public:
 	F32 hexOffset;
 	U32 seed;
 	U32 area;
-	ChunkManager manager;
 	Vector<Vector<HexVert>> points;
 	Vector<Vector<HexCell>> cells;
 	SimObjectPtr<Scene>  scene;
@@ -241,6 +238,7 @@ public:
 	void assignCellAdj(U32 i, U32 j);
 	void oceanFill(HexCell* cell);
 	void plantTrees(HexCell* cell);
+	void renderMap();
 
 	F32 checkVert(HexVert p1, HexVert p2, HexVert testVert);
 
@@ -254,8 +252,6 @@ public:
 		if (pScene)
 		{
 			object->scene = pScene;
-			object->manager = ChunkManager(object->area, object->scene);
-			//object->manager.initChunks();
 		}
 		return false;
 	}

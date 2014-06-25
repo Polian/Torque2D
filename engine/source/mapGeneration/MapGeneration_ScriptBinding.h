@@ -11,3 +11,8 @@ ConsoleFunctionWithDocs(threadedLoad, ConsoleVoid, 2, 4, ())
 	std::thread t(loadTaml, argv[1], argv[2]);
 	t.join();
 }
+
+ConsoleMethodWithDocs(Island, renderMap, ConsoleVoid, 2, 2, ())
+{
+	object->renderMap();
+}

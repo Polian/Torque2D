@@ -17,6 +17,7 @@ Island::Island()
 
 bool Island::onAdd()
 {
+	PROFILE_START(mapGen);
 	// Fail if the parent fails.  
 	if (!Parent::onAdd())
 		return false;
@@ -152,7 +153,9 @@ bool Island::onAdd()
 	}
 	outFile.close();
 	Con::printf("Island Generated");
+	PROFILE_END();
 	return true;
+
 }
 
 void Island::initPersistFields()
@@ -237,12 +240,10 @@ void Island::assignCell(U32 i, U32 j){
 	if (i%2 == 0){
 		cell.init(j, i, points[i][j * 3]);
 		cell.setVertsEven(points);
-		//cell.setAdjEven(points);
 	}
 	else{
 		cell.init(j, i, points[i][j * 3 + 1]);
 		cell.setVertsOdd(points);
-		//cell.setAdjOdd(points);
 	}
 	
 	cells[i].push_back(cell);
@@ -412,6 +413,231 @@ F32 Island::checkVert(HexVert p1, HexVert p2, HexVert testVert){
 void loadTaml(const char* name, const char* extension){
 	//Con::printf("Loading: %s.%s", name, extension);
 	Con::executef(3, "loadTaml", name, extension);
+}
+
+F32 *createIslandImage(U32 width, U32 height, Vector<Vector<HexCell>> cells, U32 area){
+	F32 *buffer = (F32 *) malloc(width*height*sizeof(F32));
+	if (buffer == NULL){
+		return NULL;
+	}
+
+	//create image based on biome of nearest cell
+	U32 xIndex, yIndex;
+	F32 xPos = 0, yPos = 0;
+	F32 tempdist = 0;
+	F32 min = 10000;
+	U32 minIndex[2] = { 0 , 0 };
+
+	for (yIndex = 0; yIndex < height; ++yIndex){
+		for (xIndex = 0; xIndex < width; ++xIndex){
+			xPos = F32(xIndex*F32((area*2) / width) -area);
+			yPos = F32(yIndex*F32((area*2) / height) -area);
+			min = 10000;
+
+			//find nearest cell
+			for (U32 i = 0; i < U32(cells.size()); ++i){
+				for (U32 j = 0; j < U32(cells[i].size()); ++j){
+					tempdist = mSqrt(mPow(cells[i][j].center.x - xPos, 2) + mPow(cells[i][j].center.y - yPos, 2));
+					if (tempdist < min){
+						min = tempdist;
+						minIndex[0] = i;
+						minIndex[1] = j;
+					}
+				}
+			}
+			
+			//set the value at the buffer to the biome number
+			//Con::printf("%i %i %i", minIndex[0], minIndex[1], cells[minIndex[0]][minIndex[1]].biome);
+			buffer[yIndex*width + xIndex] = F32(cells[minIndex[0]][minIndex[1]].biome);
+		}
+	}
+
+	return buffer;
+}
+
+
+F32 *createMandelbrotImage(int width, int height, float xS, float yS, float rad, int maxIteration){
+	float *buffer = (float *) malloc(width * height * sizeof(float));
+	if (buffer == NULL) {
+		fprintf(stderr, "Could not create image buffer\n");
+		return NULL;
+	}
+
+	// Create Mandelbrot set image
+
+	int xPos, yPos;
+	float minMu = maxIteration;
+	float maxMu = 0;
+
+	for (yPos = 0; yPos<height; yPos++)
+	{
+		float yP = (yS - rad) + (2.0f*rad / height)*yPos;
+
+		for (xPos = 0; xPos<width; xPos++)
+		{
+			float xP = (xS - rad) + (2.0f*rad / width)*xPos;
+
+			int iteration = 0;
+			float x = 0;
+			float y = 0;
+
+			while (x*x + y*y <= 4 && iteration < maxIteration)
+			{
+				float tmp = x*x - y*y + xP;
+				y = 2 * x*y + yP;
+				x = tmp;
+				iteration++;
+			}
+
+			if (iteration < maxIteration) {
+				float modZ = sqrt(x*x + y*y);
+				float mu = iteration - (log(log(modZ))) / log(2);
+				if (mu > maxMu) maxMu = mu;
+				if (mu < minMu) minMu = mu;
+				buffer[yPos * width + xPos] = mu;
+			}
+			else {
+				buffer[yPos * width + xPos] = 0;
+			}
+		}
+	}
+
+	// Scale buffer values between 0 and 1
+	int count = width * height;
+	while (count) {
+		count--;
+		buffer[count] = (buffer[count] - minMu) / (maxMu - minMu);
+	}
+
+	return buffer;
+}
+
+inline void setRGB(png_byte *ptr, float val)
+{
+	if (val == 0) { //Lake
+		ptr[0] = 46; ptr[1] = 94; ptr[2] = 110;
+	}
+	else if (val == 1) { //Shore
+		ptr[0] = 166; ptr[1] = 155; ptr[2] = 121;
+	}
+	else if (val == 2) { //Ocean
+		ptr[0] = 33; ptr[1] = 68; ptr[2] = 82;
+	}
+	else if (val == 3) { //Field
+		ptr[0] = 53; ptr[1] = 145; ptr[2] = 35;
+	}
+	else if (val == 4) { //Forest
+		ptr[0] = 54; ptr[1] = 102; ptr[2] = 21;
+	}
+}
+
+U32 writeImage(char* filename, int width, int height, float *buffer, char* title)
+{
+	int code = 0;
+	FILE *fp;
+	png_structp png_ptr;
+	png_infop info_ptr;
+	png_bytep row;
+
+	// Open file for writing (binary mode)
+	fp = fopen(filename, "wb");
+	if (fp == NULL) {
+		fprintf(stderr, "Could not open file %s for writing\n", filename);
+		code = 1;
+		goto finalise;
+	}
+
+	// Initialize write structure
+	png_ptr = png_create_write_struct(PNG_LIBPNG_VER_STRING, NULL, NULL, NULL);
+	if (png_ptr == NULL) {
+		fprintf(stderr, "Could not allocate write struct\n");
+		code = 1;
+		goto finalise;
+	}
+
+	// Initialize info structure
+	info_ptr = png_create_info_struct(png_ptr);
+	if (info_ptr == NULL) {
+		fprintf(stderr, "Could not allocate info struct\n");
+		code = 1;
+		goto finalise;
+	}
+
+	// Setup Exception handling
+	if (setjmp(png_jmpbuf(png_ptr))) {
+		fprintf(stderr, "Error during png creation\n");
+		code = 1;
+		goto finalise;
+	}
+
+	png_init_io(png_ptr, fp);
+
+	// Write header (8 bit colour depth)
+	png_set_IHDR(png_ptr, info_ptr, width, height,
+		8, PNG_COLOR_TYPE_RGB, PNG_INTERLACE_NONE,
+		PNG_COMPRESSION_TYPE_BASE, PNG_FILTER_TYPE_BASE);
+
+	// Set title
+	if (title != NULL) {
+		png_text title_text;
+		title_text.compression = PNG_TEXT_COMPRESSION_NONE;
+		title_text.key = "Title";
+		title_text.text = title;
+		png_set_text(png_ptr, info_ptr, &title_text, 1);
+	}
+
+	png_write_info(png_ptr, info_ptr);
+
+	// Allocate memory for one row (3 bytes per pixel - RGB)
+	row = (png_bytep) malloc(3 * width * sizeof(png_byte));
+
+	// Write image data
+	int x, y;
+	for (y = 0; y<height; y++) {
+		for (x = 0; x<width; x++) {
+			setRGB(&(row[x * 3]), buffer[y*width + x]);
+		}
+		png_write_row(png_ptr, row);
+	}
+
+	// End write
+	png_write_end(png_ptr, NULL);
+
+finalise:
+	if (fp != NULL) fclose(fp);
+	if (info_ptr != NULL) png_free_data(png_ptr, info_ptr, PNG_FREE_ALL, -1);
+	if (png_ptr != NULL) png_destroy_write_struct(&png_ptr, (png_infopp) NULL);
+	if (row != NULL) free(row);
+
+	return code;
+}
+
+
+void Island::renderMap(){
+	// Specify an output image size
+	U32 width = 256;
+	U32 height = 256;
+
+	//float *buffer = createMandelbrotImage(width, height, -0.802, -0.177, 0.011, 110);
+
+	// Create a test image - in this case a Mandelbrot Set fractal
+	// The output is a 1D array of floats, length: width * height
+	Con::printf("Creating Image");
+	F32 *buffer = createIslandImage(width, height, this->cells, this->area);
+	//F32 *buffer = createMandelbrotImage(width, height, -0.802, -0.177, 0.011, 110);
+	if (buffer == NULL) {
+		return;
+	}
+
+	// Save the image to a PNG file
+	// The 'title' string is stored as part of the PNG file
+	Con::printf("Saving PNG");
+	U32 result = writeImage("test.png", width, height, buffer, "This is my test image");
+
+	// Free up the memory used to store the image
+	free(buffer);
+
+	return;
 }
 
 IMPLEMENT_CONOBJECT(Island);
