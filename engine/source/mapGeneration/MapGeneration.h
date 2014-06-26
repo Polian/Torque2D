@@ -97,7 +97,7 @@ public:
 class HexCell{
 
 public:
-	U32 index;
+	Point2I index;
 	HexCell* adjacent[6];
 	HexVert verts[6];
 	HexVert center;
@@ -109,7 +109,7 @@ public:
 	virtual ~HexCell(){};
 
 	void init(U32 x, U32 y, HexVert _center){
-		index = y;
+		index = Point2I(x, y);
 		center = _center;
 		center.xCell = x;
 		center.yCell = y;		

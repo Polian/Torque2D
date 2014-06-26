@@ -415,40 +415,79 @@ void loadTaml(const char* name, const char* extension){
 	Con::executef(3, "loadTaml", name, extension);
 }
 
-F32 *createIslandImage(U32 width, U32 height, Vector<Vector<HexCell>> cells, U32 area){
+F32 checkVert(HexVert p1, HexVert p2, Point2F testPoint){
+	return (p2.x - p1.x) * (testPoint.y - p1.y) - (p2.y - p1.y) * (testPoint.x - p1.x);
+}
+
+//find which hex the point x, y is in
+Point2I findHex(U32 i, U32 j, F32 x, F32 y, Vector<Vector<HexCell>> cells){
+	//check the current cell
+	if (checkVert(cells[i][j].verts[0], cells[i][j].verts[1], Point2F(x, y)) < 0 &&
+		checkVert(cells[i][j].verts[1], cells[i][j].verts[2], Point2F(x, y)) < 0 &&
+		checkVert(cells[i][j].verts[2], cells[i][j].verts[3], Point2F(x, y)) < 0 &&
+		checkVert(cells[i][j].verts[3], cells[i][j].verts[4], Point2F(x, y)) < 0 &&
+		checkVert(cells[i][j].verts[4], cells[i][j].verts[5], Point2F(x, y)) < 0 &&
+		checkVert(cells[i][j].verts[5], cells[i][j].verts[0], Point2F(x, y)) < 0)
+	{
+		return Point2I(i, j);
+	}
+
+	//not in current, so check neighbors
+	for (U32 index = 0; index < 6; ++index){
+		if (cells[i][j].adjacent[index] != NULL){
+			if (checkVert(cells[i][j].adjacent[index]->verts[0], cells[i][j].adjacent[index]->verts[1], Point2F(x, y)) < 0 &&
+				checkVert(cells[i][j].adjacent[index]->verts[1], cells[i][j].adjacent[index]->verts[2], Point2F(x, y)) < 0 &&
+				checkVert(cells[i][j].adjacent[index]->verts[2], cells[i][j].adjacent[index]->verts[3], Point2F(x, y)) < 0 &&
+				checkVert(cells[i][j].adjacent[index]->verts[3], cells[i][j].adjacent[index]->verts[4], Point2F(x, y)) < 0 &&
+				checkVert(cells[i][j].adjacent[index]->verts[4], cells[i][j].adjacent[index]->verts[5], Point2F(x, y)) < 0 &&
+				checkVert(cells[i][j].adjacent[index]->verts[5], cells[i][j].adjacent[index]->verts[0], Point2F(x, y)) < 0)
+			{
+				return Point2I(cells[i][j].adjacent[index]->center.xCell, cells[i][j].adjacent[index]->center.yCell);
+			}
+		}
+	}
+	
+	//something went wrong so just return the original index
+	return Point2I(i, j);
+}
+
+F32 *createIslandImage(U32 width, U32 height, Vector<Vector<HexCell>> cells, U32 area, F32 hexEdgeLength){
 	F32 *buffer = (F32 *) malloc(width*height*sizeof(F32));
 	if (buffer == NULL){
 		return NULL;
 	}
 
 	//create image based on biome of nearest cell
-	U32 xIndex, yIndex;
+	U32 xIndex, yIndex, i, j;
 	F32 xPos = 0, yPos = 0;
 	F32 tempdist = 0;
 	F32 min = 10000;
-	U32 minIndex[2] = { 0 , 0 };
+	Point2I cellIndex;
 
 	for (yIndex = 0; yIndex < height; ++yIndex){
 		for (xIndex = 0; xIndex < width; ++xIndex){
-			xPos = F32(xIndex*F32((area*2) / width) -area);
-			yPos = F32(yIndex*F32((area*2) / height) -area);
+			xPos = F32(xIndex)*(F32(area)*2) / F32(height) ;
+			yPos = F32(yIndex)*(F32(area)*2) / F32(height) ;
 			min = 10000;
 
-			//find nearest cell
-			for (U32 i = 0; i < U32(cells.size()); ++i){
-				for (U32 j = 0; j < U32(cells[i].size()); ++j){
-					tempdist = mSqrt(mPow(cells[i][j].center.x - xPos, 2) + mPow(cells[i][j].center.y - yPos, 2));
-					if (tempdist < min){
-						min = tempdist;
-						minIndex[0] = i;
-						minIndex[1] = j;
-					}
-				}
+			//which cell are we dealing with?
+			i = yPos/hexEdgeLength;
+			//j = mFloor(((yPos+area) - i % 2 * hexEdgeLength) / (hexEdgeLength * 3));
+			j = xPos / (2 * hexEdgeLength) - mRound((xPos / (2 * hexEdgeLength)) / 3);
+			//Con::printf("%i %i", i, j);
+
+			if (i < U32(mFloor((2 * area) / (hexEdgeLength ))) && i > 0 && j < U32(mFloor((2 * area) / (hexEdgeLength *3))) && j > 0){
+				cellIndex = findHex(i, j, xPos, yPos, cells);
+				buffer[yIndex*width + xIndex] = F32(cells[cellIndex.x][cellIndex.y].biome);
 			}
+			else{
+				buffer[yIndex*width + xIndex] = 2;
+			}
+			
 			
 			//set the value at the buffer to the biome number
 			//Con::printf("%i %i %i", minIndex[0], minIndex[1], cells[minIndex[0]][minIndex[1]].biome);
-			buffer[yIndex*width + xIndex] = F32(cells[minIndex[0]][minIndex[1]].biome);
+			
 		}
 	}
 
@@ -623,7 +662,7 @@ void Island::renderMap(){
 	// Create a test image - in this case a Mandelbrot Set fractal
 	// The output is a 1D array of floats, length: width * height
 	Con::printf("Creating Image");
-	F32 *buffer = createIslandImage(width, height, this->cells, this->area);
+	F32 *buffer = createIslandImage(width, height, this->cells, this->area, this->hexEdgeLength);
 	//F32 *buffer = createMandelbrotImage(width, height, -0.802, -0.177, 0.011, 110);
 	if (buffer == NULL) {
 		return;
