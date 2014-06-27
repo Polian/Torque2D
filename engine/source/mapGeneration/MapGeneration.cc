@@ -419,9 +419,11 @@ F32 checkVert(HexVert p1, HexVert p2, Point2F testPoint){
 	return (p2.x - p1.x) * (testPoint.y - p1.y) - (p2.y - p1.y) * (testPoint.x - p1.x);
 }
 
-S32 pnpoly(U32 nvert, F32 *vertx, F32 *verty, F32 testx, F32 testy)
+// Algorithm for shceking if a given point is inside a polygon
+// Source: http://www.ecse.rpi.edu/Homepages/wrf/Research/Short_Notes/pnpoly.html
+S32 pnpoly(S32 nvert, F32 *vertx, F32 *verty, F32 testx, F32 testy)
 {
-	U32 i, j, c = 0;
+	S32 i, j, c = 0;
 	for (i = 0, j = nvert - 1; i < nvert; j = i++) {
 		if (((verty[i]>testy) != (verty[j]>testy)) &&
 			(testx < (vertx[j] - vertx[i]) * (testy - verty[i]) / (verty[j] - verty[i]) + vertx[i]))
@@ -440,6 +442,7 @@ Point2I findHex(U32 i, U32 j, F32 x, F32 y, Vector<Vector<HexCell>> cells){
 		return Point2I(i, j);
 	}
 
+	//not in current, so check adjacent
 	for (U32 index = 0; index < 6; ++index){
 		if (cells[i][j].adjacent[index] != NULL){
 			vertx[0] = cells[i][j].adjacent[index]->verts[0].x;
@@ -457,44 +460,41 @@ Point2I findHex(U32 i, U32 j, F32 x, F32 y, Vector<Vector<HexCell>> cells){
 			verty[5] = cells[i][j].adjacent[index]->verts[5].y;
 
 			if (pnpoly(6, vertx, verty, x, y)){
-				return Point2I(cells[i][j].adjacent[index]->center.xCell, cells[i][j].adjacent[index]->center.yCell);
+				return Point2I(cells[i][j].adjacent[index]->center.yCell, cells[i][j].adjacent[index]->center.xCell);
 			}
 		}
 	}
-	/*if (checkVert(cells[i][j].verts[0], cells[i][j].verts[1], Point2F(x, y)) < 0 &&
-		checkVert(cells[i][j].verts[1], cells[i][j].verts[2], Point2F(x, y)) < 0 &&
-		checkVert(cells[i][j].verts[2], cells[i][j].verts[3], Point2F(x, y)) > 0 &&
-		checkVert(cells[i][j].verts[3], cells[i][j].verts[4], Point2F(x, y)) < 0 &&
-		checkVert(cells[i][j].verts[4], cells[i][j].verts[5], Point2F(x, y)) < 0 &&
-		checkVert(cells[i][j].verts[5], cells[i][j].verts[0], Point2F(x, y)) < 0)
-	{
-		return Point2I(i, j);
-	}*/
-	/*Con::printf("Hex: (%f, %f) (%f, %f) (%f, %f) (%f, %f) (%f, %f) (%f, %f) Vert: (%f, %f)",	
-														cells[i][j].verts[0].x, cells[i][j].verts[0].y,
-														cells[i][j].verts[1].x, cells[i][j].verts[1].y,
-														cells[i][j].verts[2].x, cells[i][j].verts[2].y,
-														cells[i][j].verts[3].x, cells[i][j].verts[3].y,
-														cells[i][j].verts[4].x, cells[i][j].verts[4].y,
-														cells[i][j].verts[5].x, cells[i][j].verts[5].y,
-														x, y);*/
-	//not in current, so check neighbors
-	/*for (U32 index = 0; index < 6; ++index){
+
+	//not in adjacent, so check adjacent to adjacent
+	for (U32 index = 0; index < 6; ++index){
 		if (cells[i][j].adjacent[index] != NULL){
-			if (checkVert(cells[i][j].adjacent[index]->verts[0], cells[i][j].adjacent[index]->verts[1], Point2F(x, y)) < 0 &&
-				checkVert(cells[i][j].adjacent[index]->verts[1], cells[i][j].adjacent[index]->verts[2], Point2F(x, y)) < 0 &&
-				checkVert(cells[i][j].adjacent[index]->verts[2], cells[i][j].adjacent[index]->verts[3], Point2F(x, y)) > 0 &&
-				checkVert(cells[i][j].adjacent[index]->verts[3], cells[i][j].adjacent[index]->verts[4], Point2F(x, y)) < 0 &&
-				checkVert(cells[i][j].adjacent[index]->verts[4], cells[i][j].adjacent[index]->verts[5], Point2F(x, y)) < 0 &&
-				checkVert(cells[i][j].adjacent[index]->verts[5], cells[i][j].adjacent[index]->verts[0], Point2F(x, y)) < 0)
-			{
-				return Point2I(cells[i][j].adjacent[index]->center.xCell, cells[i][j].adjacent[index]->center.yCell);
+			for (U32 index2 = 0; index2 < 6; ++index2){
+				if (cells[i][j].adjacent[index]->adjacent[index2] != NULL){
+					vertx[0] = cells[i][j].adjacent[index]->adjacent[index2]->verts[0].x;
+					vertx[1] = cells[i][j].adjacent[index]->adjacent[index2]->verts[1].x;
+					vertx[2] = cells[i][j].adjacent[index]->adjacent[index2]->verts[2].x;
+					vertx[3] = cells[i][j].adjacent[index]->adjacent[index2]->verts[3].x;
+					vertx[4] = cells[i][j].adjacent[index]->adjacent[index2]->verts[4].x;
+					vertx[5] = cells[i][j].adjacent[index]->adjacent[index2]->verts[5].x;
+
+					verty[0] = cells[i][j].adjacent[index]->adjacent[index2]->verts[0].y;
+					verty[1] = cells[i][j].adjacent[index]->adjacent[index2]->verts[1].y;
+					verty[2] = cells[i][j].adjacent[index]->adjacent[index2]->verts[2].y;
+					verty[3] = cells[i][j].adjacent[index]->adjacent[index2]->verts[3].y;
+					verty[4] = cells[i][j].adjacent[index]->adjacent[index2]->verts[4].y;
+					verty[5] = cells[i][j].adjacent[index]->adjacent[index2]->verts[5].y;
+
+					if (pnpoly(6, vertx, verty, x, y)){
+						return Point2I(cells[i][j].adjacent[index]->adjacent[index2]->center.yCell, cells[i][j].adjacent[index]->adjacent[index2]->center.xCell);
+					}
+				}
 			}
 		}
-	}*/
+		
+	}
 	
-	//something went wrong so just return the original index
-	return Point2I(i, j);
+	//something went wrong so just return ocean
+	return Point2I(1, 1);
 }
 
 F32 *createIslandImage(U32 width, U32 height, Vector<Vector<HexCell>> cells, U32 area, F32 hexEdgeLength){
@@ -510,85 +510,25 @@ F32 *createIslandImage(U32 width, U32 height, Vector<Vector<HexCell>> cells, U32
 
 	for (yIndex = 0; yIndex < height; ++yIndex){
 		for (xIndex = 0; xIndex < width; ++xIndex){
-			xPos = F32(xIndex)*(F32(area)*2) / F32(height);
+			//calculate the position of the pixel (without the offset)
+			xPos = F32(xIndex)*(F32(area) * 2) / F32(width);
 			yPos = F32(yIndex)*(F32(area) * 2) / F32(height);
 
 			//which cell are we dealing with?
-			i = (yPos) / hexEdgeLength;
-			//j = mFloor(((yPos+area) - i % 2 * hexEdgeLength) / (hexEdgeLength * 3));
-			j = (xPos) / (2 * hexEdgeLength) - mRound(((xPos) / (2 * hexEdgeLength)) / 3);
-			Con::printf("%i %i", i, j);
+			i = 2*mFloor((yPos) / (2*hexEdgeLength));
+			j = mFloor((xPos) / (2 * hexEdgeLength)) - mRound(mFloor((xPos) / (2 * hexEdgeLength)) / 3);
+			
+			//Get the coordinates of the cell that the pixel is in
+			cellIndex = findHex(i, j, xPos - F32(area), yPos - F32(area), cells);
 
-			if (i < U32(mFloor((2 * area) / (hexEdgeLength))) && i > 0 && j < U32(mFloor((2 * area) / (hexEdgeLength *3))) && j > 0){
-				cellIndex = findHex(i, j, xPos - F32(area), yPos - F32(area), cells);
-				buffer[yIndex*width + xIndex] = F32(cells[cellIndex.x][cellIndex.y].biome);
+			//only calculate for cells on the interior of the image
+			if (i < U32(mFloor((2 * area) / (hexEdgeLength)) - 1) && i > 0 && j < U32(mFloor((2 * area) / (hexEdgeLength * 3)) - 1) && j > 0){
+				buffer[yIndex*width + xIndex] = F32(cells.at(cellIndex.x).at(cellIndex.y).biome);
 			}
 			else{
 				buffer[yIndex*width + xIndex] = 2;
 			}
-			
-			
-			//set the value at the buffer to the biome number
-			//Con::printf("%i %i %i", minIndex[0], minIndex[1], cells[minIndex[0]][minIndex[1]].biome);
-			
 		}
-	}
-
-	return buffer;
-}
-
-
-F32 *createMandelbrotImage(int width, int height, float xS, float yS, float rad, int maxIteration){
-	float *buffer = (float *) malloc(width * height * sizeof(float));
-	if (buffer == NULL) {
-		fprintf(stderr, "Could not create image buffer\n");
-		return NULL;
-	}
-
-	// Create Mandelbrot set image
-
-	int xPos, yPos;
-	float minMu = maxIteration;
-	float maxMu = 0;
-
-	for (yPos = 0; yPos<height; yPos++)
-	{
-		float yP = (yS - rad) + (2.0f*rad / height)*yPos;
-
-		for (xPos = 0; xPos<width; xPos++)
-		{
-			float xP = (xS - rad) + (2.0f*rad / width)*xPos;
-
-			int iteration = 0;
-			float x = 0;
-			float y = 0;
-
-			while (x*x + y*y <= 4 && iteration < maxIteration)
-			{
-				float tmp = x*x - y*y + xP;
-				y = 2 * x*y + yP;
-				x = tmp;
-				iteration++;
-			}
-
-			if (iteration < maxIteration) {
-				float modZ = sqrt(x*x + y*y);
-				float mu = iteration - (log(log(modZ))) / log(2);
-				if (mu > maxMu) maxMu = mu;
-				if (mu < minMu) minMu = mu;
-				buffer[yPos * width + xPos] = mu;
-			}
-			else {
-				buffer[yPos * width + xPos] = 0;
-			}
-		}
-	}
-
-	// Scale buffer values between 0 and 1
-	int count = width * height;
-	while (count) {
-		count--;
-		buffer[count] = (buffer[count] - minMu) / (maxMu - minMu);
 	}
 
 	return buffer;
@@ -697,16 +637,14 @@ finalise:
 
 void Island::renderMap(){
 	// Specify an output image size
-	U32 width = 256;
-	U32 height = 256;
-
-	//float *buffer = createMandelbrotImage(width, height, -0.802, -0.177, 0.011, 110);
+	U32 width = 512;
+	U32 height = 512;
 
 	// Create a test image - in this case a Mandelbrot Set fractal
 	// The output is a 1D array of floats, length: width * height
 	Con::printf("Creating Image");
 	F32 *buffer = createIslandImage(width, height, this->cells, this->area, this->hexEdgeLength);
-	//F32 *buffer = createMandelbrotImage(width, height, -0.802, -0.177, 0.011, 110);
+
 	if (buffer == NULL) {
 		return;
 	}
