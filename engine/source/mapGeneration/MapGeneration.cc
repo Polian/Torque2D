@@ -419,25 +419,71 @@ F32 checkVert(HexVert p1, HexVert p2, Point2F testPoint){
 	return (p2.x - p1.x) * (testPoint.y - p1.y) - (p2.y - p1.y) * (testPoint.x - p1.x);
 }
 
+S32 pnpoly(U32 nvert, F32 *vertx, F32 *verty, F32 testx, F32 testy)
+{
+	U32 i, j, c = 0;
+	for (i = 0, j = nvert - 1; i < nvert; j = i++) {
+		if (((verty[i]>testy) != (verty[j]>testy)) &&
+			(testx < (vertx[j] - vertx[i]) * (testy - verty[i]) / (verty[j] - verty[i]) + vertx[i]))
+			c = !c;
+	}
+	return c;
+}
+
 //find which hex the point x, y is in
 Point2I findHex(U32 i, U32 j, F32 x, F32 y, Vector<Vector<HexCell>> cells){
 	//check the current cell
-	if (checkVert(cells[i][j].verts[0], cells[i][j].verts[1], Point2F(x, y)) < 0 &&
+	F32 vertx[6] = { cells[i][j].verts[0].x, cells[i][j].verts[1].x, cells[i][j].verts[2].x, cells[i][j].verts[3].x, cells[i][j].verts[4].x, cells[i][j].verts[5].x };
+	F32 verty[6] = { cells[i][j].verts[0].y, cells[i][j].verts[1].y, cells[i][j].verts[2].y, cells[i][j].verts[3].y, cells[i][j].verts[4].y, cells[i][j].verts[5].y };
+
+	if (pnpoly(6, vertx, verty, x, y)){
+		return Point2I(i, j);
+	}
+
+	for (U32 index = 0; index < 6; ++index){
+		if (cells[i][j].adjacent[index] != NULL){
+			vertx[0] = cells[i][j].adjacent[index]->verts[0].x;
+			vertx[1] = cells[i][j].adjacent[index]->verts[1].x;
+			vertx[2] = cells[i][j].adjacent[index]->verts[2].x;
+			vertx[3] = cells[i][j].adjacent[index]->verts[3].x;
+			vertx[4] = cells[i][j].adjacent[index]->verts[4].x;
+			vertx[5] = cells[i][j].adjacent[index]->verts[5].x;
+
+			verty[0] = cells[i][j].adjacent[index]->verts[0].y;
+			verty[1] = cells[i][j].adjacent[index]->verts[1].y;
+			verty[2] = cells[i][j].adjacent[index]->verts[2].y;
+			verty[3] = cells[i][j].adjacent[index]->verts[3].y;
+			verty[4] = cells[i][j].adjacent[index]->verts[4].y;
+			verty[5] = cells[i][j].adjacent[index]->verts[5].y;
+
+			if (pnpoly(6, vertx, verty, x, y)){
+				return Point2I(cells[i][j].adjacent[index]->center.xCell, cells[i][j].adjacent[index]->center.yCell);
+			}
+		}
+	}
+	/*if (checkVert(cells[i][j].verts[0], cells[i][j].verts[1], Point2F(x, y)) < 0 &&
 		checkVert(cells[i][j].verts[1], cells[i][j].verts[2], Point2F(x, y)) < 0 &&
-		checkVert(cells[i][j].verts[2], cells[i][j].verts[3], Point2F(x, y)) < 0 &&
+		checkVert(cells[i][j].verts[2], cells[i][j].verts[3], Point2F(x, y)) > 0 &&
 		checkVert(cells[i][j].verts[3], cells[i][j].verts[4], Point2F(x, y)) < 0 &&
 		checkVert(cells[i][j].verts[4], cells[i][j].verts[5], Point2F(x, y)) < 0 &&
 		checkVert(cells[i][j].verts[5], cells[i][j].verts[0], Point2F(x, y)) < 0)
 	{
 		return Point2I(i, j);
-	}
-
+	}*/
+	/*Con::printf("Hex: (%f, %f) (%f, %f) (%f, %f) (%f, %f) (%f, %f) (%f, %f) Vert: (%f, %f)",	
+														cells[i][j].verts[0].x, cells[i][j].verts[0].y,
+														cells[i][j].verts[1].x, cells[i][j].verts[1].y,
+														cells[i][j].verts[2].x, cells[i][j].verts[2].y,
+														cells[i][j].verts[3].x, cells[i][j].verts[3].y,
+														cells[i][j].verts[4].x, cells[i][j].verts[4].y,
+														cells[i][j].verts[5].x, cells[i][j].verts[5].y,
+														x, y);*/
 	//not in current, so check neighbors
-	for (U32 index = 0; index < 6; ++index){
+	/*for (U32 index = 0; index < 6; ++index){
 		if (cells[i][j].adjacent[index] != NULL){
 			if (checkVert(cells[i][j].adjacent[index]->verts[0], cells[i][j].adjacent[index]->verts[1], Point2F(x, y)) < 0 &&
 				checkVert(cells[i][j].adjacent[index]->verts[1], cells[i][j].adjacent[index]->verts[2], Point2F(x, y)) < 0 &&
-				checkVert(cells[i][j].adjacent[index]->verts[2], cells[i][j].adjacent[index]->verts[3], Point2F(x, y)) < 0 &&
+				checkVert(cells[i][j].adjacent[index]->verts[2], cells[i][j].adjacent[index]->verts[3], Point2F(x, y)) > 0 &&
 				checkVert(cells[i][j].adjacent[index]->verts[3], cells[i][j].adjacent[index]->verts[4], Point2F(x, y)) < 0 &&
 				checkVert(cells[i][j].adjacent[index]->verts[4], cells[i][j].adjacent[index]->verts[5], Point2F(x, y)) < 0 &&
 				checkVert(cells[i][j].adjacent[index]->verts[5], cells[i][j].adjacent[index]->verts[0], Point2F(x, y)) < 0)
@@ -445,7 +491,7 @@ Point2I findHex(U32 i, U32 j, F32 x, F32 y, Vector<Vector<HexCell>> cells){
 				return Point2I(cells[i][j].adjacent[index]->center.xCell, cells[i][j].adjacent[index]->center.yCell);
 			}
 		}
-	}
+	}*/
 	
 	//something went wrong so just return the original index
 	return Point2I(i, j);
@@ -460,24 +506,21 @@ F32 *createIslandImage(U32 width, U32 height, Vector<Vector<HexCell>> cells, U32
 	//create image based on biome of nearest cell
 	U32 xIndex, yIndex, i, j;
 	F32 xPos = 0, yPos = 0;
-	F32 tempdist = 0;
-	F32 min = 10000;
 	Point2I cellIndex;
 
 	for (yIndex = 0; yIndex < height; ++yIndex){
 		for (xIndex = 0; xIndex < width; ++xIndex){
-			xPos = F32(xIndex)*(F32(area)*2) / F32(height) ;
-			yPos = F32(yIndex)*(F32(area)*2) / F32(height) ;
-			min = 10000;
+			xPos = F32(xIndex)*(F32(area)*2) / F32(height);
+			yPos = F32(yIndex)*(F32(area) * 2) / F32(height);
 
 			//which cell are we dealing with?
-			i = yPos/hexEdgeLength;
+			i = (yPos) / hexEdgeLength;
 			//j = mFloor(((yPos+area) - i % 2 * hexEdgeLength) / (hexEdgeLength * 3));
-			j = xPos / (2 * hexEdgeLength) - mRound((xPos / (2 * hexEdgeLength)) / 3);
-			//Con::printf("%i %i", i, j);
+			j = (xPos) / (2 * hexEdgeLength) - mRound(((xPos) / (2 * hexEdgeLength)) / 3);
+			Con::printf("%i %i", i, j);
 
-			if (i < U32(mFloor((2 * area) / (hexEdgeLength ))) && i > 0 && j < U32(mFloor((2 * area) / (hexEdgeLength *3))) && j > 0){
-				cellIndex = findHex(i, j, xPos, yPos, cells);
+			if (i < U32(mFloor((2 * area) / (hexEdgeLength))) && i > 0 && j < U32(mFloor((2 * area) / (hexEdgeLength *3))) && j > 0){
+				cellIndex = findHex(i, j, xPos - F32(area), yPos - F32(area), cells);
 				buffer[yIndex*width + xIndex] = F32(cells[cellIndex.x][cellIndex.y].biome);
 			}
 			else{
