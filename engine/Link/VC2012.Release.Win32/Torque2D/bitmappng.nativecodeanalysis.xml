@@ -1,0 +1,2 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<DEFECTS><DEFECT><SFA><FILEPATH>c:\users\alex\torque2dlight\torque2d\engine\source\graphics\</FILEPATH><FILENAME>bitmappng.cc</FILENAME><LINE>311</LINE><COLUMN>23</COLUMN></SFA><DEFECTCODE>6262</DEFECTCODE><DESCRIPTION>Function uses '16416' bytes of stack:  exceeds /analyze:stacksize '16384'.  Consider moving some data to heap.</DESCRIPTION><FUNCTION>GBitmap::_writePNG</FUNCTION><DECORATED>?_writePNG@GBitmap@@ABE_NAAVStream@@III@Z</DECORATED><FUNCLINE>311</FUNCLINE><PATH/></DEFECT></DEFECTS>

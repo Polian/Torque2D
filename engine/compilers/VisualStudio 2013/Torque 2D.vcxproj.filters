@@ -1437,6 +1437,9 @@
     <ClCompile Include="..\..\source\perlinNoise\simplexnoise.cpp">
       <Filter>perlinNoise</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\source\mapGeneration\CellManager.cc">
+      <Filter>mapGeneration</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\source\audio\audio.h">
@@ -3179,6 +3182,12 @@
     </ClInclude>
     <ClInclude Include="..\..\source\perlinNoise\simplexnoise.h">
       <Filter>perlinNoise</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\source\mapGeneration\CellManager.h">
+      <Filter>mapGeneration</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\source\mapGeneration\CellManager_ScriptBinding.h">
+      <Filter>mapGeneration</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

@@ -1416,7 +1416,7 @@ ConsoleMethodWithDocs(CompositeSprite, getSpriteCirclePoints, ConsoleString, 2, 
 /*! Set custom poly shape for the selected sprite.
 @return No return Value.
 */
-ConsoleMethodWithDocs(CompositeSprite, setSpriteCustomPoly, ConsoleVoid, 3, 3, "(poly-definition) Define a custom polygon for the sprite ."
+ConsoleMethodWithDocs(CompositeSprite, setSpritePolyCustom, ConsoleVoid, 3, 3, "(poly-definition) Define a custom polygon for the sprite ."
 	"@return no value")
 {
 	object->setSpriteCustomPoly(argv[2]);

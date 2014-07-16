@@ -16,3 +16,30 @@ ConsoleMethodWithDocs(Island, renderMap, ConsoleVoid, 2, 2, ())
 {
 	object->renderMap();
 }
+
+ConsoleMethodWithDocs(Island, getBiome, ConsoleInt, 2, 4, ())
+{
+	return object->getBiome(argv[2], argv[3]);
+}
+
+ConsoleFunctionWithDocs(project3d, ConsoleString, 2, 2, ())
+{
+	char point[128];
+	F32 ax = 0, ay = 0, az = 0;
+	F32 cx = 0, cy = 0, cz = 0;
+	
+	//set the camera and traget points
+	dSscanf(argv[1], "%f %f %f", &ax, &ay, &az);
+	dSscanf(Con::executef(1, "getCameraPos"), "%f %f %f", &cx, &cy, &cz);
+
+	//make sure we do not divide by zero (this should almost never happen)
+	if (cz-az == 0){
+		dSprintf(point, 128, "%f %f", 0, 0);
+	}
+	else{
+		dSprintf(point, 128, "%f %f", ((cz * (ax - cx)) / (cz - az)) + cx, ((cz * (ay - cy)) / (cz - az)) + cy);
+	}
+	
+	
+	return point;
+}

@@ -17,7 +17,6 @@ Island::Island()
 
 bool Island::onAdd()
 {
-	PROFILE_START(mapGen);
 	// Fail if the parent fails.  
 	if (!Parent::onAdd())
 		return false;
@@ -25,11 +24,14 @@ bool Island::onAdd()
 	// Initializations
 	S32 i = 0, j = 0;
 
-	hexEdgeLength = 100;
+	hexEdgeLength = 20;
 	hexOffset = F32(hexEdgeLength*0.5) /*/ (1 / mSqrt(2))*/;
-	F32 transAmount = 37.5;
-	area = 4000;
-	seed = mRandI(0, S32_MAX); // the seed for our noise function
+	F32 transAmount = hexEdgeLength * 0.375f;
+	area = 2000;
+
+	/*gRandGen.setGlobalRandSeed(19559375);
+	seed = gRandGen.getSeed();*/ // the seed for our noise function
+	seed = mRandI(0, S32_MAX);
 	Con::printf("seed: %i", seed);
 
 	// generate vertex postions
@@ -153,7 +155,6 @@ bool Island::onAdd()
 	}
 	outFile.close();
 	Con::printf("Island Generated");
-	PROFILE_END();
 	return true;
 
 }
@@ -186,6 +187,7 @@ F32 Island::genNoise(F32 x, F32 y){
 	
 	F32 r = 0;
 	F32 noise = 0;
+	
 
 	//offset x and y location
 	x = x - area;
@@ -193,7 +195,7 @@ F32 Island::genNoise(F32 x, F32 y){
 
 	//generate noise
 	//Scale for area=500 and edgeLenght=10 is 0.005
-	noise = scaled_octave_noise_3d(8.0f, 0.0f, 0.0005f, 0.0f, 1.0f, x, y, (const float) (seed));
+	noise = scaled_octave_noise_3d(8.0f, 0.0f, 0.001f, 0.0f, 1.0f, x, y, (const float) (seed));
 
 	//make noise more "island-like"
 	r = mSqrt(x * x + y * y) / (area - (area*0.1f));
@@ -211,6 +213,9 @@ F32 Island::genLandNoise(F32 x, F32 y){
 	
 	F32 r = 0;
 	F32 noise = 0;
+	F32 islandNoise = 0;
+
+	islandNoise = genNoise(x, y);
 
 	//offset x and y location
 	x = x - area;
@@ -218,16 +223,13 @@ F32 Island::genLandNoise(F32 x, F32 y){
 
 	//generate noise
 	//Scale for area=500 and edgeLenght=10 is 0.015
-	noise = scaled_octave_noise_3d(8.0f, 0.0f, 0.0015f, 0.0f, 1.0f, x, y, (const float) (seed));
+	noise = scaled_octave_noise_3d(8.0f, 0.0f, 0.00325f, 0.0f, 1.0f, x, y, (const float) (seed));
+	
 
 	// generate biome noise to be a smaller island
-	r = mSqrt(x * x + y * y) / (area - (area*0.1f));
-	if (noise * exp(-mPow(r / 4, 2)) - mPow(r, 2) < 0){
-		noise = 0;
-	}
-	else{
-		noise = mPow(noise * exp(-mPow(r / 4, 2)) - mPow(r, 2), 2);
-	}
+	//r = mSqrt(x * x + y * y) / (area - (area*0.1f));
+
+	noise = (islandNoise + (noise/6)) / 2;
 
 	return noise;
 }
@@ -273,7 +275,7 @@ void Island::oceanFill(HexCell* cell){
 	Queue<HexCell*> fillQueue;
 	Queue<HexCell*> beachQueue;
 	HexCell* n;
-	F32 beachThreshold = 0.025f;
+	F32 beachThreshold = 0.004f;
 
 	fillQueue.enqueue(cell);
 
@@ -324,7 +326,7 @@ void Island::oceanFill(HexCell* cell){
 
 void Island::assignLandBiome(HexCell* cell){
 
-	F32 forestThreshold = 0.035f;
+	F32 forestThreshold = 0.05f;
 
 	if (cell->center.landNoise > forestThreshold){
 		cell->biome = 4; // forest
@@ -337,7 +339,7 @@ void Island::assignLandBiome(HexCell* cell){
 void Island::plantTrees(HexCell* cell){
 	F32 triArea = 0;
 	U32 numPoints = 10;
-	F32 rad = 10.0f;
+	F32 rad = 6.0f;
 	U32 treeCount = 0;
 	F32 density = 0;
 
@@ -346,11 +348,11 @@ void Island::plantTrees(HexCell* cell){
 		//find area of triangle and determine the number of trees to plant in the tri
 		if (i == 5){
 			triArea = 0.5f * getMax(mFabs(cell->verts[i].y - cell->verts[0].y), mFabs(cell->verts[i].y - cell->center.y)) * getMax(mFabs(cell->verts[i].x - cell->verts[0].x), mFabs(cell->verts[i].x - cell->center.x));
-			density = ((cell->verts[i].landNoise + cell->verts[0].landNoise + cell->center.landNoise) / 3.0f)*4.0f;
+			density = ((cell->verts[i].landNoise + cell->verts[0].landNoise + cell->center.landNoise) / 3.0f) * 8.0f;
 		}
 		else{
 			triArea = 0.5f * getMax(mFabs(cell->verts[i].y - cell->verts[i + 1].y), mFabs(cell->verts[i].y - cell->center.y)) * getMax(mFabs(cell->verts[i].x - cell->verts[i + 1].x), mFabs(cell->verts[i].x - cell->center.x));
-			density = ((cell->verts[i].landNoise + cell->verts[0].landNoise + cell->center.landNoise) / 3.0f) * 4.0f;
+			density = ((cell->verts[i].landNoise + cell->verts[0].landNoise + cell->center.landNoise) / 3.0f) * 8.0f;
 		}
 
 		//make sure the density stays below 1
@@ -415,11 +417,7 @@ void loadTaml(const char* name, const char* extension){
 	Con::executef(3, "loadTaml", name, extension);
 }
 
-F32 checkVert(HexVert p1, HexVert p2, Point2F testPoint){
-	return (p2.x - p1.x) * (testPoint.y - p1.y) - (p2.y - p1.y) * (testPoint.x - p1.x);
-}
-
-// Algorithm for shceking if a given point is inside a polygon
+// Algorithm for checking if a given point is inside a polygon
 // Source: http://www.ecse.rpi.edu/Homepages/wrf/Research/Short_Notes/pnpoly.html
 S32 pnpoly(S32 nvert, F32 *vertx, F32 *verty, F32 testx, F32 testy)
 {
@@ -493,7 +491,7 @@ Point2I findHex(U32 i, U32 j, F32 x, F32 y, Vector<Vector<HexCell>> cells){
 		
 	}
 	
-	//something went wrong so just return ocean
+	//something went wrong so just return a cell that consists of ocean
 	return Point2I(1, 1);
 }
 
@@ -515,8 +513,8 @@ F32 *createIslandImage(U32 width, U32 height, Vector<Vector<HexCell>> cells, U32
 			yPos = F32(yIndex)*(F32(area) * 2) / F32(height);
 
 			//which cell are we dealing with?
-			i = 2*mFloor((yPos) / (2*hexEdgeLength));
-			j = mFloor((xPos) / (2 * hexEdgeLength)) - mRound(mFloor((xPos) / (2 * hexEdgeLength)) / 3);
+			i = U32(2*mFloor((yPos) / (2*hexEdgeLength)));
+			j = U32(mFloor((xPos) / (2 * hexEdgeLength)) - mRound(mFloor((xPos) / (2 * hexEdgeLength)) / 3));
 			
 			//Get the coordinates of the cell that the pixel is in
 			cellIndex = findHex(i, j, xPos - F32(area), yPos - F32(area), cells);
@@ -637,10 +635,9 @@ finalise:
 
 void Island::renderMap(){
 	// Specify an output image size
-	U32 width = 512;
-	U32 height = 512;
+	U32 width = 256;
+	U32 height = 256;
 
-	// Create a test image - in this case a Mandelbrot Set fractal
 	// The output is a 1D array of floats, length: width * height
 	Con::printf("Creating Image");
 	F32 *buffer = createIslandImage(width, height, this->cells, this->area, this->hexEdgeLength);
@@ -652,12 +649,43 @@ void Island::renderMap(){
 	// Save the image to a PNG file
 	// The 'title' string is stored as part of the PNG file
 	Con::printf("Saving PNG");
-	U32 result = writeImage("test.png", width, height, buffer, "This is my test image");
+	U32 result = writeImage("modules/LightModule/1/assets/images/Maps/mainMap.png", width, height, buffer, "Main Map");
+
+	
 
 	// Free up the memory used to store the image
 	free(buffer);
 
 	return;
+}
+
+//function that returns the biome of the given point
+U32 Island::getBiome(const char* x, const char* y){
+	Point2I cellIndex;
+	U32 i, j;
+
+	//approximately which cell are we dealing with?
+	i = U32(2 * mFloor((dAtof(y)+area) / (2 * hexEdgeLength)));
+	j = U32(mFloor((dAtof(x)+area) / (2 * hexEdgeLength)) - mRound(mFloor((dAtof(x) + area) / (2 * hexEdgeLength)) / 3));
+	
+	//Get the coordinates of the cell that the pixel is in
+	cellIndex = findHex(i, j, dAtof(x), dAtof(y), cells);
+
+	return cells[cellIndex.x][cellIndex.y].biome;
+}
+
+HexCell* Island::getCell(Point2F pos){
+	Point2I cellIndex;
+	U32 i, j;
+
+	//approximately which cell are we dealing with?
+	i = U32(2 * mFloor((pos.y + area) / (2 * hexEdgeLength)));
+	j = U32(mFloor((pos.x + area) / (2 * hexEdgeLength)) - mRound(mFloor((pos.x + area) / (2 * hexEdgeLength)) / 3));
+
+	//Get the coordinates of the cell that the pixel is in
+	cellIndex = findHex(i, j, pos.x, pos.y, cells);
+
+	return &cells[cellIndex.x][cellIndex.y];
 }
 
 IMPLEMENT_CONOBJECT(Island);

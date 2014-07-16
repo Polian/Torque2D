@@ -37,6 +37,7 @@ class Tree{
 public:
 	F32 x, y;
 	F32 radius;
+	SceneObject* object;
 
 public:
 	Tree(){};
@@ -46,6 +47,7 @@ public:
 		x = vert_x;
 		y = vert_y;
 		radius = _rad;
+		object = NULL;
 	};
 };
 
@@ -239,6 +241,8 @@ public:
 	void oceanFill(HexCell* cell);
 	void plantTrees(HexCell* cell);
 	void renderMap();
+	U32 getBiome(const char* x, const char* y);
+	HexCell* getCell(Point2F pos);
 
 	F32 checkVert(HexVert p1, HexVert p2, HexVert testVert);
 
@@ -286,5 +290,6 @@ public:
 
 void loadTaml(const char* name, const char* extension);
 void unloadTaml(const char* name, const char* extension);
+S32 pnpoly(S32 nvert, F32 *vertx, F32 *verty, F32 testx, F32 testy);
 
 #endif
