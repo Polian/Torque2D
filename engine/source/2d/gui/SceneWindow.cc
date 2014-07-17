@@ -904,18 +904,24 @@ Vector2 SceneWindow::getMousePosition( void )
 
 //-----------------------------------------------------------------------------
 
-void SceneWindow::windowToScenePoint( const Vector2& srcPoint, Vector2& dstPoint ) const
+void SceneWindow::windowToScenePoint(const Vector2& srcPoint, Vector2& dstPoint) const
 {
-    // Return Conversion.
-    dstPoint.Set( (srcPoint.x * mCameraCurrent.mSceneWindowScale.x) + mCameraCurrent.mSceneMin.x, mCameraCurrent.mSceneMax.y - (srcPoint.y * mCameraCurrent.mSceneWindowScale.y) );
+	dstPoint = srcPoint;
+	dstPoint.scale(mCameraCurrent.mSceneWindowScale);
+	dstPoint.x = dstPoint.x + mCameraCurrent.mSceneMin.x;
+	dstPoint.y = mCameraCurrent.mSceneMax.y - dstPoint.y;
+	dstPoint.rotate(0.5 * (mCameraCurrent.mSceneMin + mCameraCurrent.mSceneMax), -mCameraCurrent.mCameraAngle);
 }
 
 //-----------------------------------------------------------------------------
 
-void SceneWindow::sceneToWindowPoint( const Vector2& srcPoint, Vector2& dstPoint ) const
+void SceneWindow::sceneToWindowPoint(const Vector2& srcPoint, Vector2& dstPoint) const
 {
-    // Return Conversion.
-    dstPoint.Set( (srcPoint.x - mCameraCurrent.mSceneMin.x) / mCameraCurrent.mSceneWindowScale.x, (mCameraCurrent.mSceneMax.y - srcPoint.y) / mCameraCurrent.mSceneWindowScale.y );
+	dstPoint = srcPoint;
+	dstPoint.rotate(0.5 * (mCameraCurrent.mSceneMin + mCameraCurrent.mSceneMax), mCameraCurrent.mCameraAngle);
+	dstPoint.x = dstPoint.x - mCameraCurrent.mSceneMin.x;
+	dstPoint.y = mCameraCurrent.mSceneMax.y - dstPoint.y;
+	dstPoint.scale(Vector2(1 / mCameraCurrent.mSceneWindowScale.x, 1 / mCameraCurrent.mSceneWindowScale.y));
 }
 
 //-----------------------------------------------------------------------------

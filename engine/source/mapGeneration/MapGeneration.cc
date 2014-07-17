@@ -29,9 +29,9 @@ bool Island::onAdd()
 	F32 transAmount = hexEdgeLength * 0.375f;
 	area = 2000;
 
-	/*gRandGen.setGlobalRandSeed(19559375);
-	seed = gRandGen.getSeed();*/ // the seed for our noise function
-	seed = mRandI(0, S32_MAX);
+	gRandGen.setGlobalRandSeed(1627839297);
+	seed = gRandGen.getSeed(); // the seed for our noise function
+	//seed = mRandI(0, S32_MAX);
 	Con::printf("seed: %i", seed);
 
 	// generate vertex postions
@@ -339,7 +339,7 @@ void Island::assignLandBiome(HexCell* cell){
 void Island::plantTrees(HexCell* cell){
 	F32 triArea = 0;
 	U32 numPoints = 10;
-	F32 rad = 6.0f;
+	F32 rad = 5.0f;
 	U32 treeCount = 0;
 	F32 density = 0;
 
@@ -348,11 +348,11 @@ void Island::plantTrees(HexCell* cell){
 		//find area of triangle and determine the number of trees to plant in the tri
 		if (i == 5){
 			triArea = 0.5f * getMax(mFabs(cell->verts[i].y - cell->verts[0].y), mFabs(cell->verts[i].y - cell->center.y)) * getMax(mFabs(cell->verts[i].x - cell->verts[0].x), mFabs(cell->verts[i].x - cell->center.x));
-			density = ((cell->verts[i].landNoise + cell->verts[0].landNoise + cell->center.landNoise) / 3.0f) * 8.0f;
+			density = ((cell->verts[i].landNoise + cell->verts[0].landNoise + cell->center.landNoise) / 3.0f) * 9.0f;
 		}
 		else{
 			triArea = 0.5f * getMax(mFabs(cell->verts[i].y - cell->verts[i + 1].y), mFabs(cell->verts[i].y - cell->center.y)) * getMax(mFabs(cell->verts[i].x - cell->verts[i + 1].x), mFabs(cell->verts[i].x - cell->center.x));
-			density = ((cell->verts[i].landNoise + cell->verts[0].landNoise + cell->center.landNoise) / 3.0f) * 8.0f;
+			density = ((cell->verts[i].landNoise + cell->verts[0].landNoise + cell->center.landNoise) / 3.0f) * 9.0f;
 		}
 
 		//make sure the density stays below 1

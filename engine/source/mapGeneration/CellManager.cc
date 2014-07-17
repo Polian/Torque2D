@@ -113,7 +113,10 @@ void CellManager::generateCell(HexCell* cell){
 			treeMarker->setPosition(Vector2(cell->trees[k].x, cell->trees[k].y));
 			treeMarker->setSize(Vector2("1 1"));
 
-			treeMarker->setSceneLayer(4);
+			treeMarker->setField("Rendered", "false");
+
+			treeMarker->setSceneLayer(dAtoi(Con::getVariable("TreeLayer")));
+			treeMarker->setSceneGroup(dAtoi(Con::getVariable("TreeGroup")));
 
 			myIsland->scene->addToScene(treeMarker);
 
