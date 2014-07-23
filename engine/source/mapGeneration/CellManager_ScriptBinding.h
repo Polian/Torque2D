@@ -53,3 +53,21 @@ ConsoleMethodWithDocs(CellManager, updateCells, ConsoleVoid, 3, 3, ())
 
 	object->checkPlayerCell(playerPos);
 }
+
+ConsoleMethodWithDocs(CellManager, getLandCellCount, ConsoleInt, 2, 2, ())
+{
+	return object->getIsland()->landCellCount;
+}
+
+/*! Get the 1D Index of the cell the given point resides in.
+@param x y position that is being checked.
+@return The index of the cell.
+*/
+ConsoleMethodWithDocs(CellManager, getCellIndex, ConsoleInt, 3, 3, ())
+{
+	Point2F pos;
+
+	dSscanf(argv[2], "%f %f", &pos.x, &pos.y);
+
+	return object->getIsland()->getCell(pos)->landIndex;
+}

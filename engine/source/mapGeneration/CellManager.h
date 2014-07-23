@@ -43,6 +43,8 @@ public:
 	void generateCell(HexCell* cell);
 	void removeCell(HexCell* cell);
 
+	Island* getIsland(){ return myIsland; }
+
 	bool setIsland(const char* island){
 		Island* pIsland = dynamic_cast<Island*>(Sim::findObject(island));
 
@@ -55,7 +57,5 @@ public:
 
 	DECLARE_CONOBJECT(CellManager);
 };
-
-U32 modulo(S32 a, S32 b);
 
 #endif

@@ -33,7 +33,7 @@ void CellManager::initPersistFields()
 	Parent::initPersistFields();
 
 	// My fields here.
-
+	//addProtectedField("objectSet", TypeSimObjectPtr, Offset(objectSet, CellManager), &setObjectSet, &defaultProtectedGetFn, &writeObjectSet, "");
 }
 
 void CellManager::checkPlayerCell(Point2F playerPos){
@@ -102,7 +102,7 @@ void CellManager::generateCell(HexCell* cell){
 
 	// If the cell is a forest cell place trees
 	if (cell->biome == 4){
-		// Set tree positions
+		// Set tree positions		
 		myIsland->plantTrees(cell);
 
 		// Place objects in the scene at tree positions
@@ -123,20 +123,29 @@ void CellManager::generateCell(HexCell* cell){
 			cell->trees[k].object = treeMarker;
 		}
 	}
+
+	// Place dynamic objects
+	char s[32];
+	dItoa(cell->landIndex, s);
+	Con::executef(2, "placeDynamicObjects", s);
 }
 
 void CellManager::removeCell(HexCell* cell){
 
 	// If the cell is a forest remove all the trees
 	if (cell->biome == 4){
+
+		// Remove Trees
 		for (S32 k = 0; k < cell->trees.size(); ++k){
 			cell->trees[k].object->deleteObject();
 		}
-
 		cell->trees.clear();
 	}
-}
 
-U32 modulo(S32 a, S32 b) { return a >= 0 ? a % b : (b - mAbs(a%b)) % b; }
+	// Remove dynamic objects
+	char s[32];
+	dItoa(cell->landIndex, s);
+	Con::executef(2, "removeDynamicObjects", s);
+}
 
 IMPLEMENT_CONOBJECT(CellManager);

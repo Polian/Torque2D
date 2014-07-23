@@ -24,7 +24,8 @@ ConsoleMethodWithDocs(Island, getBiome, ConsoleInt, 2, 4, ())
 
 ConsoleFunctionWithDocs(project3d, ConsoleString, 2, 2, ())
 {
-	char point[128];
+	// Create Returnable Buffer.
+	char* point = Con::getReturnBuffer(32);
 	F32 ax = 0, ay = 0, az = 0;
 	F32 cx = 0, cy = 0, cz = 0;
 	
@@ -34,10 +35,10 @@ ConsoleFunctionWithDocs(project3d, ConsoleString, 2, 2, ())
 
 	//make sure we do not divide by zero (this should almost never happen)
 	if (cz-az == 0){
-		dSprintf(point, 128, "%f %f", 0, 0);
+		dSprintf(point, 32, "%f %f", 0, 0);
 	}
 	else{
-		dSprintf(point, 128, "%f %f", ((cz * (ax - cx)) / (cz - az)) + cx, ((cz * (ay - cy)) / (cz - az)) + cy);
+		dSprintf(point, 32, "%f %f", ((cz * (ax - cx)) / (cz - az)) + cx, ((cz * (ay - cy)) / (cz - az)) + cy);
 	}
 	
 	

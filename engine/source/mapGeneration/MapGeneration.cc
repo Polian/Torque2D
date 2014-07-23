@@ -12,6 +12,7 @@
 Island::Island()
 {
 	//vertices = NULL;
+	landCellCount = 0;
 }
 
 
@@ -30,7 +31,7 @@ bool Island::onAdd()
 	area = 2000;
 
 	gRandGen.setGlobalRandSeed(1627839297);
-	seed = gRandGen.getSeed(); // the seed for our noise function
+	seed = gRandGen.getSeed(); // the seed from which the island is generated
 	//seed = mRandI(0, S32_MAX);
 	Con::printf("seed: %i", seed);
 
@@ -49,8 +50,8 @@ bool Island::onAdd()
 	for (i = 0; i < points.size(); ++i){
 		for (j = 0; j < points.at(i).size(); ++j){
 			if (!(points[i][j].yIndex % 2 == 0 && points[i][j].xIndex % 3 == 0) && !(points[i][j].yIndex % 2 != 0 && points[i][j].xIndex % 3 == 1)){
-				points[i][j].x = points[i][j].x + mRandF(-transAmount, transAmount);
-				points[i][j].y = points[i][j].y + mRandF(-transAmount, transAmount);
+				points[i][j].x = points[i][j].x + gRandGen.randRangeF(-transAmount, transAmount);
+				points[i][j].y = points[i][j].y + gRandGen.randRangeF(-transAmount, transAmount);
 			}
 		}
 	}
@@ -151,6 +152,7 @@ bool Island::onAdd()
 			for (U32 k = 0; k < U32(cells[i][j].trees.size()); ++k){
 				outFile << cells[i][j].trees[k].x << "," << cells[i][j].trees[k].y << "," << cells[i][j].trees[k].radius << "\n";
 			}
+			cells[i][j].trees.clear();
 		}
 	}
 	outFile.close();
@@ -334,14 +336,20 @@ void Island::assignLandBiome(HexCell* cell){
 	else{
 		cell->biome = 3; // field
 	}
+
+	cell->landIndex = landCellCount;
+	landCellCount++;
 }
 
 void Island::plantTrees(HexCell* cell){
 	F32 triArea = 0;
 	U32 numPoints = 10;
-	F32 rad = 5.0f;
+	F32 rad = 5.5f;
 	U32 treeCount = 0;
 	F32 density = 0;
+
+	//Make sure the random seed matches the island seed
+	gRandGen.setSeed(seed);
 
 	//plant trees in each triangle inside the cell
 	for (U32 i = 0; i < 6; ++i){
@@ -366,45 +374,30 @@ void Island::plantTrees(HexCell* cell){
 		//plant the trees
 		while (treeCount < numPoints){
 			HexVert temp;
-			// check if it is the last triangle in the current hex
-			if (i == 5){
-				temp = HexVert(
-					mRandF(getMin(cell->verts[i].x, getMin(cell->verts[0].x, cell->center.x)), getMax(cell->verts[i].x, getMax(cell->verts[0].x, cell->center.x))),
-					mRandF(getMin(cell->verts[i].y, getMin(cell->verts[0].y, cell->center.y)), getMax(cell->verts[i].y, getMax(cell->verts[0].y, cell->center.y))));
-				
-				//check if the random point is within the bounds of the triangle
-				if (checkVert(cell->verts[i], cell->verts[0], temp) < 0 && checkVert(cell->verts[0], cell->center, temp) < 0 && checkVert(cell->center, cell->verts[i], temp) < 0){
-					//make sure the point is not overlapping another
-					if (temp.checkPosition(cell->trees, rad) == 0){
-						cell->trees.push_back(Tree(temp.x, temp.y, rad));
-						treeCount++;
-					}
 
+			temp = HexVert(
+				gRandGen.randRangeF(getMin(cell->verts[i].x, getMin(cell->verts[i + 1].x, cell->center.x)), getMax(cell->verts[i].x, getMax(cell->verts[i + 1].x, cell->center.x))),
+				gRandGen.randRangeF(getMin(cell->verts[i].y, getMin(cell->verts[i + 1].y, cell->center.y)), getMax(cell->verts[i].y, getMax(cell->verts[i + 1].y, cell->center.y))));
+
+			//check if the random point is within the bounds of the triangle
+			F32 vertx[3] = { cell->verts[i].x, cell->verts[modulo(i + 1, 6)].x, cell->center.x};
+			F32 verty[3] = { cell->verts[i].y, cell->verts[modulo(i + 1, 6)].y, cell->center.y };
+
+			if (pnpoly(3, vertx, verty, temp.x, temp.y)){
+				//make sure the point is not overlapping another
+				if (temp.checkPosition(cell->trees, rad) == 0){
+					cell->trees.push_back(Tree(temp.x, temp.y, rad));
+					treeCount++;
 				}
+
 			}
-			else{
-				temp = HexVert(
-					mRandF(getMin(cell->verts[i].x, getMin(cell->verts[i + 1].x, cell->center.x)), getMax(cell->verts[i].x, getMax(cell->verts[i + 1].x, cell->center.x))),
-					mRandF(getMin(cell->verts[i].y, getMin(cell->verts[i + 1].y, cell->center.y)), getMax(cell->verts[i].y, getMax(cell->verts[i + 1].y, cell->center.y))));
-
-				//check if the random point is within the bounds of the triangle
-				if (checkVert(cell->verts[i], cell->verts[i + 1], temp) < 0 && checkVert(cell->verts[i + 1], cell->center, temp) < 0 && checkVert(cell->center, cell->verts[i], temp) < 0){
-					//make sure the point is not overlapping another
-					if (temp.checkPosition(cell->trees, rad) == 0){
-						cell->trees.push_back(Tree(temp.x, temp.y, rad));
-						treeCount++;
-					}
-
-				}
-			}
-			
-			
-
-			
 		}
+			
 	}
 
 }
+
+U32 modulo(S32 a, S32 b) { return a >= 0 ? a % b : (b - mAbs(a%b)) % b; }
 
 F32 Island::checkVert(HexVert p1, HexVert p2, HexVert testVert){
 

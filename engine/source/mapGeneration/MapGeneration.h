@@ -100,6 +100,7 @@ class HexCell{
 
 public:
 	Point2I index;
+	U32 landIndex;
 	HexCell* adjacent[6];
 	HexVert verts[6];
 	HexVert center;
@@ -114,7 +115,8 @@ public:
 		index = Point2I(x, y);
 		center = _center;
 		center.xCell = x;
-		center.yCell = y;		
+		center.yCell = y;
+		landIndex = -1;
 	};
 
 	void setVertsEven(Vector<Vector<HexVert>> points){
@@ -220,6 +222,7 @@ public:
 	F32 hexOffset;
 	U32 seed;
 	U32 area;
+	U32 landCellCount;
 	Vector<Vector<HexVert>> points;
 	Vector<Vector<HexCell>> cells;
 	SimObjectPtr<Scene>  scene;
@@ -291,5 +294,6 @@ public:
 void loadTaml(const char* name, const char* extension);
 void unloadTaml(const char* name, const char* extension);
 S32 pnpoly(S32 nvert, F32 *vertx, F32 *verty, F32 testx, F32 testy);
+U32 modulo(S32 a, S32 b);
 
 #endif
