@@ -376,8 +376,12 @@ void Island::plantTrees(HexCell* cell){
 			HexVert temp;
 
 			temp = HexVert(
-				gRandGen.randRangeF(getMin(cell->verts[i].x, getMin(cell->verts[i + 1].x, cell->center.x)), getMax(cell->verts[i].x, getMax(cell->verts[i + 1].x, cell->center.x))),
-				gRandGen.randRangeF(getMin(cell->verts[i].y, getMin(cell->verts[i + 1].y, cell->center.y)), getMax(cell->verts[i].y, getMax(cell->verts[i + 1].y, cell->center.y))));
+				gRandGen.randRangeF(
+					getMin(cell->verts[i].x, getMin(cell->verts[modulo(i + 1, 6)].x, cell->center.x)), 
+					getMax(cell->verts[i].x, getMax(cell->verts[modulo(i + 1, 6)].x, cell->center.x))),
+				gRandGen.randRangeF(
+					getMin(cell->verts[i].y, getMin(cell->verts[modulo(i + 1, 6)].y, cell->center.y)),
+					getMax(cell->verts[i].y, getMax(cell->verts[modulo(i + 1, 6)].y, cell->center.y))));
 
 			//check if the random point is within the bounds of the triangle
 			F32 vertx[3] = { cell->verts[i].x, cell->verts[modulo(i + 1, 6)].x, cell->center.x};

@@ -71,3 +71,8 @@ ConsoleMethodWithDocs(CellManager, getCellIndex, ConsoleInt, 3, 3, ())
 
 	return object->getIsland()->getCell(pos)->landIndex;
 }
+
+ConsoleMethodWithDocs(CellManager, getSeed, ConsoleInt, 2, 2, ())
+{
+	return object->getIsland()->seed;
+}
