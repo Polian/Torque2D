@@ -3,6 +3,11 @@ ConsoleMethodWithDocs(CellManager, setIsland, ConsoleVoid, 3, 3, ())
 	object->setIsland(argv[2]);
 }
 
+ConsoleMethodWithDocs(CellManager, setFoliageSystem, ConsoleVoid, 3, 3, ())
+{
+	//object->setFoliageSystem(argv[2]);
+}
+
 ConsoleMethodWithDocs(CellManager, setPlayerCell, ConsoleVoid, 3, 3, ())
 {
 	Point2F playerPos;
@@ -20,6 +25,23 @@ ConsoleMethodWithDocs(CellManager, setPlayerCell, ConsoleVoid, 3, 3, ())
 	object->generateCell(object->getPlayerCell()->adjacent[3]);
 	object->generateCell(object->getPlayerCell()->adjacent[4]);
 	object->generateCell(object->getPlayerCell()->adjacent[5]);
+
+	// Populate the beds surrounding the player bed
+	if (object->getFoliageSystem()){
+		object->setPlayerBed(object->getFoliageSystem()->getBed(playerPos));
+
+		Point2I bedIndex = object->getPlayerBed()->getIndex();
+		object->generateBed(bedIndex);
+		object->generateBed(Point2I(bedIndex.x + 1, bedIndex.y + 1));
+		object->generateBed(Point2I(bedIndex.x + 1, bedIndex.y));
+		object->generateBed(Point2I(bedIndex.x + 1, bedIndex.y - 1));
+		object->generateBed(Point2I(bedIndex.x - 1, bedIndex.y + 1));
+		object->generateBed(Point2I(bedIndex.x - 1, bedIndex.y));
+		object->generateBed(Point2I(bedIndex.x - 1, bedIndex.y - 1));
+		object->generateBed(Point2I(bedIndex.x, bedIndex.y + 1));
+		object->generateBed(Point2I(bedIndex.x, bedIndex.y - 1));
+	}
+	
 }
 
 ConsoleMethodWithDocs(CellManager, unloadPlayerCell, ConsoleVoid, 3, 3, ())
@@ -43,6 +65,21 @@ ConsoleMethodWithDocs(CellManager, unloadPlayerCell, ConsoleVoid, 3, 3, ())
 	object->removeCell(object->getPlayerCell()->adjacent[3]);
 	object->removeCell(object->getPlayerCell()->adjacent[4]);
 	object->removeCell(object->getPlayerCell()->adjacent[5]);
+
+	// Remove the beds in the player area
+	if (object->getFoliageSystem()){
+		Point2I bedIndex = object->getPlayerBed()->getIndex();
+		object->removeBed(bedIndex);
+		object->removeBed(Point2I(bedIndex.x + 1, bedIndex.y + 1));
+		object->removeBed(Point2I(bedIndex.x + 1, bedIndex.y));
+		object->removeBed(Point2I(bedIndex.x + 1, bedIndex.y - 1));
+		object->removeBed(Point2I(bedIndex.x - 1, bedIndex.y + 1));
+		object->removeBed(Point2I(bedIndex.x - 1, bedIndex.y));
+		object->removeBed(Point2I(bedIndex.x - 1, bedIndex.y - 1));
+		object->removeBed(Point2I(bedIndex.x, bedIndex.y + 1));
+		object->removeBed(Point2I(bedIndex.x, bedIndex.y - 1));
+	}
+
 }
 
 ConsoleMethodWithDocs(CellManager, updateCells, ConsoleVoid, 3, 3, ())
@@ -52,6 +89,11 @@ ConsoleMethodWithDocs(CellManager, updateCells, ConsoleVoid, 3, 3, ())
 	dSscanf(argv[2], "%f %f", &playerPos.x, &playerPos.y);
 
 	object->checkPlayerCell(playerPos);
+
+	if (object->getFoliageSystem()){
+		object->updateFoliageBeds(playerPos);
+	}
+	
 }
 
 ConsoleMethodWithDocs(CellManager, getLandCellCount, ConsoleInt, 2, 2, ())

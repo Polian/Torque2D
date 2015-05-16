@@ -17,6 +17,10 @@
 #include "mapGeneration/MapGeneration.h"
 #endif
 
+#ifndef _FOLIAGE_SYSTEM_H_
+#include "FoliageSystem.h"
+#endif
+
 class CellManager : public SimObject
 {
 private:
@@ -24,6 +28,8 @@ private:
 
 	Island* myIsland;
 	HexCell* playerCell;
+	SimObjectPtr<FoliageSystem> myFoliageSystem;
+	FoliageBed* playerBed;
 
 public:
 
@@ -43,6 +49,13 @@ public:
 	void generateCell(HexCell* cell);
 	void removeCell(HexCell* cell);
 
+	void setPlayerBed(FoliageBed* pBed){ this->playerBed = pBed; }
+	FoliageBed* getPlayerBed() { return this->playerBed; }
+	void updateFoliageBeds(Point2F playerPos);
+	void generateBed(Point2I index);
+	void removeBed(Point2I index);
+
+	// Island getter/setter
 	Island* getIsland(){ return myIsland; }
 
 	bool setIsland(const char* island){
@@ -54,6 +67,26 @@ public:
 		}
 		return false;
 	};
+
+	// Foliage system getter/setter
+	inline FoliageSystem* const     getFoliageSystem(void) const                      { return myFoliageSystem; }
+
+	static bool             setFoliageSystem(void* obj, const char* data)
+	{
+		FoliageSystem* tempSystem = dynamic_cast<FoliageSystem*>(Sim::findObject(data));
+		CellManager* object = static_cast<CellManager*>(obj);
+		if (tempSystem)
+		{
+			object->myFoliageSystem = tempSystem;
+			
+			// Set the player bed
+			object->playerBed = tempSystem->getBed(Point2I(0, 0));
+		}
+
+
+		return false;
+	}
+	static bool             writeFoliageSystem(void* obj, StringTableEntry pFieldName) { return false; }
 
 	DECLARE_CONOBJECT(CellManager);
 };

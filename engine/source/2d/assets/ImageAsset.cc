@@ -250,6 +250,26 @@ void ImageAsset::setImageFile( const char* pImageFile )
     refreshAsset();
 }
 
+void ImageAsset::setImageTexture(TextureHandle pTexture){
+	this->mImageTextureHandle = pTexture; 
+	//const char* pImageFile = "tmp_image.png";
+	//// Sanity!
+	//AssertFatal(pImageFile != NULL, "Cannot use a NULL image file.");
+
+	//// Fetch image file.
+	//pImageFile = StringTable->insert(pImageFile);
+
+	//// Ignore no change,
+	//if (pImageFile == mImageFile)
+	//	return;
+
+	//// Update.
+	//mImageFile = getOwned() ? expandAssetFilePath(pImageFile) : StringTable->insert(pImageFile);
+
+	//// Refresh the asset.
+	//refreshAsset();
+}
+
 //------------------------------------------------------------------------------
 
 void ImageAsset::copyTo(SimObject* object)
@@ -1127,7 +1147,10 @@ void ImageAsset::calculateImage( void )
         TextureManager::refresh( mImageFile );
 
     // Get image texture.
-    mImageTextureHandle.set( mImageFile, TextureHandle::BitmapTexture, true, getForce16Bit() );
+	if(mImageTextureHandle.IsNull()){
+		mImageTextureHandle.set(mImageFile, TextureHandle::BitmapTexture, true, getForce16Bit());
+	}
+    
 
     // Is the texture valid?
     if ( mImageTextureHandle.IsNull() )

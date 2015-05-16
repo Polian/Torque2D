@@ -33,7 +33,7 @@ void CellManager::initPersistFields()
 	Parent::initPersistFields();
 
 	// My fields here.
-	//addProtectedField("objectSet", TypeSimObjectPtr, Offset(objectSet, CellManager), &setObjectSet, &defaultProtectedGetFn, &writeObjectSet, "");
+	addProtectedField("FoliageSystem", TypeSimObjectPtr, Offset(myFoliageSystem, CellManager), &setFoliageSystem, &defaultProtectedGetFn, &writeFoliageSystem, "");
 }
 
 void CellManager::checkPlayerCell(Point2F playerPos){
@@ -66,7 +66,6 @@ void CellManager::checkPlayerCell(Point2F playerPos){
 			verty[5] = playerCell->adjacent[index]->verts[5].y;
 
 			if (pnpoly(6, vertx, verty, playerPos.x, playerPos.y)){
-				
 
 				//clear old cells
 				removeCell(playerCell->adjacent[modulo(index - 4, 6)]);
@@ -81,7 +80,7 @@ void CellManager::checkPlayerCell(Point2F playerPos){
 				generateCell(playerCell->adjacent[index]);
 				generateCell(playerCell->adjacent[modulo(index + 1, 6)]);
 
-				break;
+				return;
 			}
 		}
 
@@ -91,7 +90,7 @@ void CellManager::checkPlayerCell(Point2F playerPos){
 
 void CellManager::setPlayerCell(HexCell* cell){
 	//Con::printf("Player Cell: %i %i", cell->center.xIndex, cell->center.yIndex);
-	playerCell = cell;
+	this->playerCell = cell;
 }
 
 void CellManager::getCell(Point2F playerPos){
@@ -148,4 +147,88 @@ void CellManager::removeCell(HexCell* cell){
 	Con::executef(2, "removeDynamicObjects", s);
 }
 
+
+// Update Foliage Beds:
+// add and remove plant objects from the scene
+void CellManager::updateFoliageBeds(Point2F playerPos){
+	//Check if the player bed has changed
+	FoliageBed* tempBed = static_cast<FoliageSystem*>(this->myFoliageSystem)->getBed(playerPos);
+	if (this->playerBed->getIndex() == tempBed->getIndex()){
+		return;
+	}
+	// The player is in a new bed 
+	else{
+		// Determine which beds are going to be loaded and removed
+		Point2I unloadList[3] = {};
+		Point2I loadList[3] = {};
+
+		S32 oldXIndex = this->playerBed->getIndex().x;
+		S32 oldYIndex = this->playerBed->getIndex().y;
+		S32 newXIndex = tempBed->getIndex().x;
+		S32 newYIndex = tempBed->getIndex().y;
+
+		if (oldXIndex < newXIndex){
+			unloadList[0] = Point2I(oldXIndex - 1, oldYIndex + 1);
+			unloadList[1] = Point2I(oldXIndex - 1, newYIndex);
+			unloadList[2] = Point2I(oldXIndex - 1, oldYIndex - 1);
+
+			loadList[0] = Point2I(newXIndex + 1, newYIndex + 1);
+			loadList[1] = Point2I(newXIndex + 1, newYIndex);
+			loadList[2] = Point2I(newXIndex + 1, newYIndex - 1);
+		}
+		else if (oldXIndex > newXIndex){
+			unloadList[0] = Point2I(oldXIndex + 1, oldYIndex + 1);
+			unloadList[1] = Point2I(oldXIndex + 1, oldYIndex);
+			unloadList[2] = Point2I(oldXIndex + 1, oldYIndex - 1);
+
+			loadList[0] = Point2I(newXIndex - 1, newYIndex + 1);
+			loadList[1] = Point2I(newXIndex - 1, newYIndex);
+			loadList[2] = Point2I(newXIndex - 1, newYIndex - 1);
+		}
+		else if (oldYIndex < newYIndex){
+			unloadList[0] = Point2I(oldXIndex + 1, oldYIndex - 1);
+			unloadList[1] = Point2I(oldXIndex, oldYIndex - 1);
+			unloadList[2] = Point2I(oldXIndex - 1, oldYIndex - 1);
+
+			loadList[0] = Point2I(newXIndex + 1, newYIndex + 1);
+			loadList[1] = Point2I(newXIndex, newYIndex + 1);
+			loadList[2] = Point2I(newXIndex - 1, newYIndex + 1);
+		}
+		else if (oldYIndex > newYIndex){
+			unloadList[0] = Point2I(oldXIndex + 1, oldYIndex + 1);
+			unloadList[1] = Point2I(oldXIndex, oldYIndex + 1);
+			unloadList[2] = Point2I(oldXIndex - 1, oldYIndex + 1);
+
+			loadList[0] = Point2I(newXIndex + 1, newYIndex - 1);
+			loadList[1] = Point2I(newXIndex, newYIndex - 1);
+			loadList[2] = Point2I(newXIndex - 1, newYIndex - 1);
+		}
+
+		// Unload old beds (needs to happen before we update the player bed)
+		this->removeBed(unloadList[0]);
+		this->removeBed(unloadList[1]);
+		this->removeBed(unloadList[2]);
+
+		// Load adjacent beds
+		this->generateBed(loadList[0]);
+		this->generateBed(loadList[1]);
+		this->generateBed(loadList[2]);
+
+		// Update the player bed
+		this->playerBed = tempBed;
+		//Con::printf("New Bed: %d %d\tLoad beds: %d %d, %d %d, %d %d", tempBed->getIndex().x, tempBed->getIndex().y, loadList[0].x, loadList[0].y, loadList[1].x, loadList[1].y, loadList[2].x, loadList[2].y);
+		//Con::executef(1, "printPlantCount");
+		
+	}
+	
+
+}
+
+void CellManager::generateBed(Point2I index){
+	this->myFoliageSystem->getBed(index)->addPlantsToScene();
+}
+
+void CellManager::removeBed(Point2I index){
+	this->myFoliageSystem->getBed(index)->removePlantsFromScene();
+}
 IMPLEMENT_CONOBJECT(CellManager);

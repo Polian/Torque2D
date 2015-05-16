@@ -103,62 +103,66 @@ bool Island::onAdd()
 	
 
 	// write cell info to file
-	std::ofstream outFile;
-	outFile.open("modules/LightModule/1/MapData/Cells.csv");
-	for (i = 0; i < cells.size(); ++i){
-		for (j = 0; j < cells[i].size(); ++j){
-			//Con::printf("%i", cells[i][j].adjacent[0]->center.x);
-			outFile << cells[i][j].verts[0].x << "," << cells[i][j].verts[0].y << ",";
-			outFile << cells[i][j].verts[1].x << "," << cells[i][j].verts[1].y << ",";
-			outFile << cells[i][j].verts[2].x << "," << cells[i][j].verts[2].y << ",";
-			outFile << cells[i][j].verts[3].x << "," << cells[i][j].verts[3].y << ",";
-			outFile << cells[i][j].verts[4].x << "," << cells[i][j].verts[4].y << ",";
-			outFile << cells[i][j].verts[5].x << "," << cells[i][j].verts[5].y << ",";
-			/*outFile << cells[i][j].verts[0].x << " " << cells[i][j].verts[0].y << " ";
-			outFile << cells[i][j].verts[1].x << " " << cells[i][j].verts[1].y << " ";
-			outFile << cells[i][j].verts[2].x << " " << cells[i][j].verts[2].y << " ";
-			outFile << cells[i][j].verts[3].x << " " << cells[i][j].verts[3].y << " ";
-			outFile << cells[i][j].verts[4].x << " " << cells[i][j].verts[4].y << " ";
-			outFile << cells[i][j].verts[5].x << " " << cells[i][j].verts[5].y << ",";*/
-			if (cells[i][j].adjacent[0] != NULL){
-				outFile << cells[i][j].adjacent[0]->center.x << "," << cells[i][j].adjacent[0]->center.y << ",";
-				outFile << cells[i][j].adjacent[1]->center.x << "," << cells[i][j].adjacent[1]->center.y << ",";
-				outFile << cells[i][j].adjacent[2]->center.x << "," << cells[i][j].adjacent[2]->center.y << ",";
-				outFile << cells[i][j].adjacent[3]->center.x << "," << cells[i][j].adjacent[3]->center.y << ",";
-				outFile << cells[i][j].adjacent[4]->center.x << "," << cells[i][j].adjacent[4]->center.y << ",";
-				outFile << cells[i][j].adjacent[5]->center.x << "," << cells[i][j].adjacent[5]->center.y << ",";
-			}
-			else{
-				outFile << "0,0,";
-				outFile << "0,0,";
-				outFile << "0,0,";
-				outFile << "0,0,";
-				outFile << "0,0,";
-				outFile << "0,0,";
-			}
-			
-			outFile << cells[i][j].center.x << "," << cells[i][j].center.y << ",";
-			outFile << cells[i][j].biome << ",";
-			outFile << cells[i][j].center.elevation << "\n";
-		}
-	}
+	//std::ofstream outFile;
+	//outFile.open("modules/LightModule/1/MapData/Cells.csv");
+	//for (i = 0; i < cells.size(); ++i){
+	//	for (j = 0; j < cells[i].size(); ++j){
+	//		//Con::printf("%i", cells[i][j].adjacent[0]->center.x);
+	//		outFile << cells[i][j].verts[0].x << "," << cells[i][j].verts[0].y << ",";
+	//		outFile << cells[i][j].verts[1].x << "," << cells[i][j].verts[1].y << ",";
+	//		outFile << cells[i][j].verts[2].x << "," << cells[i][j].verts[2].y << ",";
+	//		outFile << cells[i][j].verts[3].x << "," << cells[i][j].verts[3].y << ",";
+	//		outFile << cells[i][j].verts[4].x << "," << cells[i][j].verts[4].y << ",";
+	//		outFile << cells[i][j].verts[5].x << "," << cells[i][j].verts[5].y << ",";
+	//		/*outFile << cells[i][j].verts[0].x << " " << cells[i][j].verts[0].y << " ";
+	//		outFile << cells[i][j].verts[1].x << " " << cells[i][j].verts[1].y << " ";
+	//		outFile << cells[i][j].verts[2].x << " " << cells[i][j].verts[2].y << " ";
+	//		outFile << cells[i][j].verts[3].x << " " << cells[i][j].verts[3].y << " ";
+	//		outFile << cells[i][j].verts[4].x << " " << cells[i][j].verts[4].y << " ";
+	//		outFile << cells[i][j].verts[5].x << " " << cells[i][j].verts[5].y << ",";*/
+	//		if (cells[i][j].adjacent[0] != NULL){
+	//			outFile << cells[i][j].adjacent[0]->center.x << "," << cells[i][j].adjacent[0]->center.y << ",";
+	//			outFile << cells[i][j].adjacent[1]->center.x << "," << cells[i][j].adjacent[1]->center.y << ",";
+	//			outFile << cells[i][j].adjacent[2]->center.x << "," << cells[i][j].adjacent[2]->center.y << ",";
+	//			outFile << cells[i][j].adjacent[3]->center.x << "," << cells[i][j].adjacent[3]->center.y << ",";
+	//			outFile << cells[i][j].adjacent[4]->center.x << "," << cells[i][j].adjacent[4]->center.y << ",";
+	//			outFile << cells[i][j].adjacent[5]->center.x << "," << cells[i][j].adjacent[5]->center.y << ",";
+	//		}
+	//		else{
+	//			outFile << "0,0,";
+	//			outFile << "0,0,";
+	//			outFile << "0,0,";
+	//			outFile << "0,0,";
+	//			outFile << "0,0,";
+	//			outFile << "0,0,";
+	//		}
+	//		
+	//		outFile << cells[i][j].center.x << "," << cells[i][j].center.y << ",";
+	//		outFile << cells[i][j].biome << ",";
+	//		outFile << cells[i][j].center.elevation << "\n";
+	//	}
+	//}
 
-	outFile.close();
+	//outFile.close();
 
-	//write trees to file
-	outFile.open("modules/LightModule/1/MapData/Trees.csv");
-	for (i = 0; i < cells.size(); ++i){
-		for (j = 0; j < cells[i].size(); ++j){
-			for (U32 k = 0; k < U32(cells[i][j].trees.size()); ++k){
-				outFile << cells[i][j].trees[k].x << "," << cells[i][j].trees[k].y << "," << cells[i][j].trees[k].radius << "\n";
-			}
-			cells[i][j].trees.clear();
-		}
-	}
-	outFile.close();
+	////write trees to file
+	//outFile.open("modules/LightModule/1/MapData/Trees.csv");
+	//for (i = 0; i < cells.size(); ++i){
+	//	for (j = 0; j < cells[i].size(); ++j){
+	//		for (U32 k = 0; k < U32(cells[i][j].trees.size()); ++k){
+	//			outFile << cells[i][j].trees[k].x << "," << cells[i][j].trees[k].y << "," << cells[i][j].trees[k].radius << "\n";
+	//		}
+	//		cells[i][j].trees.clear();
+	//	}
+	//}
+	//outFile.close();
 	Con::printf("Island Generated");
 	return true;
 
+}
+
+void Island::onRemove(){
+	
 }
 
 void Island::initPersistFields()
@@ -168,9 +172,7 @@ void Island::initPersistFields()
 
 	// Add my fields here.  
 	addProtectedField("scene", TypeSimObjectPtr, Offset(scene, Island), &setScene, &defaultProtectedGetFn, &writeScene, "");
-	//addField("chunkManager", TypeSimObjectPtr, Offset(chunkManager, Island), "");
-	//addField("Corners", TypeString, Offset(corners, Island), "List of corners.");
-	//addField("Corners", , Offset(corners, Island), "List of corners.");
+	addProtectedField("map", TypeSimObjectPtr, Offset(map, Island), &setMap, &defaultProtectedGetFn, &writeMap, "");
 }
 
 
@@ -492,166 +494,83 @@ Point2I findHex(U32 i, U32 j, F32 x, F32 y, Vector<Vector<HexCell>> cells){
 	return Point2I(1, 1);
 }
 
-F32 *createIslandImage(U32 width, U32 height, Vector<Vector<HexCell>> cells, U32 area, F32 hexEdgeLength){
-	F32 *buffer = (F32 *) malloc(width*height*sizeof(F32));
-	if (buffer == NULL){
-		return NULL;
-	}
-
-	//create image based on biome of nearest cell
-	U32 xIndex, yIndex, i, j;
-	F32 xPos = 0, yPos = 0;
-	Point2I cellIndex;
-
-	for (yIndex = 0; yIndex < height; ++yIndex){
-		for (xIndex = 0; xIndex < width; ++xIndex){
-			//calculate the position of the pixel (without the offset)
-			xPos = F32(xIndex)*(F32(area) * 2) / F32(width);
-			yPos = F32(yIndex)*(F32(area) * 2) / F32(height);
-
-			//which cell are we dealing with?
-			i = U32(2*mFloor((yPos) / (2*hexEdgeLength)));
-			j = U32(mFloor((xPos) / (2 * hexEdgeLength)) - mRound(mFloor((xPos) / (2 * hexEdgeLength)) / 3));
-			
-			//Get the coordinates of the cell that the pixel is in
-			cellIndex = findHex(i, j, xPos - F32(area), yPos - F32(area), cells);
-
-			//only calculate for cells on the interior of the image
-			if (i < U32(mFloor((2 * area) / (hexEdgeLength)) - 1) && i > 0 && j < U32(mFloor((2 * area) / (hexEdgeLength * 3)) - 1) && j > 0){
-				buffer[yIndex*width + xIndex] = F32(cells.at(cellIndex.x).at(cellIndex.y).biome);
-			}
-			else{
-				buffer[yIndex*width + xIndex] = 2;
-			}
-		}
-	}
-
-	return buffer;
-}
-
-inline void setRGB(png_byte *ptr, float val)
-{
-	if (val == 0) { //Lake
-		ptr[0] = 46; ptr[1] = 94; ptr[2] = 110;
-	}
-	else if (val == 1) { //Shore
-		ptr[0] = 166; ptr[1] = 155; ptr[2] = 121;
-	}
-	else if (val == 2) { //Ocean
-		ptr[0] = 33; ptr[1] = 68; ptr[2] = 82;
-	}
-	else if (val == 3) { //Field
-		ptr[0] = 53; ptr[1] = 145; ptr[2] = 35;
-	}
-	else if (val == 4) { //Forest
-		ptr[0] = 54; ptr[1] = 102; ptr[2] = 21;
-	}
-}
-
-U32 writeImage(char* filename, int width, int height, float *buffer, char* title)
-{
-	int code = 0;
-	FILE *fp;
-	png_structp png_ptr;
-	png_infop info_ptr;
-	png_bytep row;
-
-	// Open file for writing (binary mode)
-	fp = fopen(filename, "wb");
-	if (fp == NULL) {
-		fprintf(stderr, "Could not open file %s for writing\n", filename);
-		code = 1;
-		goto finalise;
-	}
-
-	// Initialize write structure
-	png_ptr = png_create_write_struct(PNG_LIBPNG_VER_STRING, NULL, NULL, NULL);
-	if (png_ptr == NULL) {
-		fprintf(stderr, "Could not allocate write struct\n");
-		code = 1;
-		goto finalise;
-	}
-
-	// Initialize info structure
-	info_ptr = png_create_info_struct(png_ptr);
-	if (info_ptr == NULL) {
-		fprintf(stderr, "Could not allocate info struct\n");
-		code = 1;
-		goto finalise;
-	}
-
-	// Setup Exception handling
-	if (setjmp(png_jmpbuf(png_ptr))) {
-		fprintf(stderr, "Error during png creation\n");
-		code = 1;
-		goto finalise;
-	}
-
-	png_init_io(png_ptr, fp);
-
-	// Write header (8 bit colour depth)
-	png_set_IHDR(png_ptr, info_ptr, width, height,
-		8, PNG_COLOR_TYPE_RGB, PNG_INTERLACE_NONE,
-		PNG_COMPRESSION_TYPE_BASE, PNG_FILTER_TYPE_BASE);
-
-	// Set title
-	if (title != NULL) {
-		png_text title_text;
-		title_text.compression = PNG_TEXT_COMPRESSION_NONE;
-		title_text.key = "Title";
-		title_text.text = title;
-		png_set_text(png_ptr, info_ptr, &title_text, 1);
-	}
-
-	png_write_info(png_ptr, info_ptr);
-
-	// Allocate memory for one row (3 bytes per pixel - RGB)
-	row = (png_bytep) malloc(3 * width * sizeof(png_byte));
-
-	// Write image data
-	int x, y;
-	for (y = 0; y<height; y++) {
-		for (x = 0; x<width; x++) {
-			setRGB(&(row[x * 3]), buffer[y*width + x]);
-		}
-		png_write_row(png_ptr, row);
-	}
-
-	// End write
-	png_write_end(png_ptr, NULL);
-
-finalise:
-	if (fp != NULL) fclose(fp);
-	if (info_ptr != NULL) png_free_data(png_ptr, info_ptr, PNG_FREE_ALL, -1);
-	if (png_ptr != NULL) png_destroy_write_struct(&png_ptr, (png_infopp) NULL);
-	if (row != NULL) free(row);
-
-	return code;
-}
 
 
 void Island::renderMap(){
 	// Specify an output image size
-	U32 width = 256;
-	U32 height = 256;
+	Point2I extent;
+	extent.x = 256;
+	extent.y = 256;
 
-	// The output is a 1D array of floats, length: width * height
-	Con::printf("Creating Image");
-	F32 *buffer = createIslandImage(width, height, this->cells, this->area, this->hexEdgeLength);
+	GBitmap* bitmap = new GBitmap(extent.x, extent.y, false, GBitmap::BitmapFormat::RGBA);
+	U8 * pixels = bitmap->getWritableBits();
 
-	if (buffer == NULL) {
-		return;
+	for (S32 i = 0; i<extent.x; i++)
+	{
+		for (S32 j = 0; j<extent.y; j++)
+		{
+			U32 a, b, biome;
+			F32 xPos = 0, yPos = 0;
+			U8 red, green, blue;
+			Point2I cellIndex;
+
+			//calculate the position of the pixel
+			xPos = F32(i)*(F32(area) * 2) / F32(extent.x);
+			xPos += F32(area) / F32(extent.x);
+			yPos = F32(j)*(F32(area) * 2) / F32(extent.y);
+			yPos += F32(area) / F32(extent.y);
+
+			//which cell are we dealing with?
+			a = U32(2 * mFloor((yPos) / (2 * hexEdgeLength)));
+			b = U32(mFloor((xPos) / (2 * hexEdgeLength)) - mRound(mFloor((xPos) / (2 * hexEdgeLength)) / 3));
+
+			//Get the coordinates of the cell that the pixel is in
+			cellIndex = findHex(a, b, xPos - F32(area), yPos - F32(area), cells);
+
+			//only calculate for cells on the interior of the image
+			if (a < U32(mFloor((2 * area) / (hexEdgeLength)) - 1) && a > 0 && b < U32(mFloor((2 * area) / (hexEdgeLength * 3)) - 1) && b > 0){
+				biome = cells.at(cellIndex.x).at(cellIndex.y).biome;
+			}
+			else{
+				biome = 2;
+			}
+
+			
+
+			if (biome == 0) { //Lake
+				red = 46; green = 94; blue = 110;
+			}
+			else if (biome == 1) { //Shore
+				red = 166; green = 155; blue = 121;
+			}
+			else if (biome == 2) { //Ocean
+				red = 33; green = 68; blue = 82;
+			}
+			else if (biome == 3) { //Field
+				red = 53; green = 145; blue = 35;
+			}
+			else if (biome == 4) { //Forest
+				red = 54; green = 102; blue = 21;
+			}
+
+			pixels[i * 4 + j * 4 * extent.x + 0] = red;
+			pixels[i * 4 + j * 4 * extent.x + 1] = green;
+			pixels[i * 4 + j * 4 * extent.x + 2] = blue;
+			pixels[i * 4 + j * 4 * extent.x + 3] = 255;
+		}
 	}
 
-	// Save the image to a PNG file
-	// The 'title' string is stored as part of the PNG file
-	Con::printf("Saving PNG");
-	U32 result = writeImage("modules/LightModule/1/assets/images/Maps/mainMap.png", width, height, buffer, "Main Map");
+	TextureHandle* handle = new TextureHandle();
+	handle->set(TextureManager::getUniqueTextureKey(), bitmap, TextureHandle::TextureHandleType::BitmapKeepTexture);
 
-	
 
-	// Free up the memory used to store the image
-	free(buffer);
+	ImageAsset* asset = new ImageAsset();
+	//asset->setAssetInternal(true);
+	asset->setImageTexture(*handle);
+	AssetDatabase.addPrivateAsset(asset);
+
+
+	static_cast<ImageFrameProvider*>(map)->setImage(asset->getAssetId());
 
 	return;
 }

@@ -1440,6 +1440,9 @@
     <ClCompile Include="..\..\source\mapGeneration\CellManager.cc">
       <Filter>mapGeneration</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\source\mapGeneration\FoliageSystem.cc">
+      <Filter>mapGeneration</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\source\audio\audio.h">
@@ -3187,6 +3190,12 @@
       <Filter>mapGeneration</Filter>
     </ClInclude>
     <ClInclude Include="..\..\source\mapGeneration\CellManager_ScriptBinding.h">
+      <Filter>mapGeneration</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\source\mapGeneration\FoliageSystem.h">
+      <Filter>mapGeneration</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\source\mapGeneration\FoliageSystem_ScriptBinding.h">
       <Filter>mapGeneration</Filter>
     </ClInclude>
   </ItemGroup>

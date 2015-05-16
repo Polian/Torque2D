@@ -29,6 +29,10 @@
 #include "platform\threads\thread.h"
 #endif
 
+#ifndef _SPRITE_H_
+#include "2d/sceneobject/Sprite.h"
+#endif
+
 #include <png.h>
 
 //NOTE: Not regular Hexagons for the sake of more easily filling the given area
@@ -226,11 +230,13 @@ public:
 	Vector<Vector<HexVert>> points;
 	Vector<Vector<HexCell>> cells;
 	SimObjectPtr<Scene>  scene;
+	SimObjectPtr<Sprite>  map;
 	
 
 	Island();
 	virtual ~Island() {};
 	virtual bool onAdd();
+	virtual void onRemove();
 
 	static void initPersistFields();
 
@@ -263,6 +269,21 @@ public:
 		return false;
 	}
 	static bool             writeScene(void* obj, StringTableEntry pFieldName) { return false; }
+
+	// Map
+	inline Sprite* const     getMap(void) const                      { return map; }
+
+	static bool             setMap(void* obj, const char* data)
+	{
+		Sprite* pMap = dynamic_cast<Sprite*>(Sim::findObject(data));
+		Island* object = static_cast<Island*>(obj);
+		if (pMap)
+		{
+			object->map = pMap;
+		}
+		return false;
+	}
+	static bool             writeMap(void* obj, StringTableEntry pFieldName) { return false; }
 
 	void placeTrees(){
 		S32 i, j, k;

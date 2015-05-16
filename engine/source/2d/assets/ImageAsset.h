@@ -194,6 +194,8 @@ public:
     void                    setImageFile( const char* pImageFile );
     inline StringTableEntry getImageFile( void ) const                      { return mImageFile; };
 
+	void					setImageTexture(TextureHandle pTexture);
+
     void                    setForce16Bit( const bool force16Bit );
     inline bool             getForce16Bit( void ) const                     { return mForce16Bit; }
 

@@ -440,6 +440,7 @@
     <ClCompile Include="..\..\source\io\zip\zipSubStream.cc" />
     <ClCompile Include="..\..\source\io\zip\zipTempStream.cc" />
     <ClCompile Include="..\..\source\mapGeneration\CellManager.cc" />
+    <ClCompile Include="..\..\source\mapGeneration\FoliageSystem.cc" />
     <ClCompile Include="..\..\source\mapGeneration\MapGeneration.cc" />
     <ClCompile Include="..\..\source\math\math_ScriptBinding.cc" />
     <ClCompile Include="..\..\source\math\mPoint.cpp" />
@@ -951,6 +952,8 @@
     <ClInclude Include="..\..\source\io\zip\zipTempStream.h" />
     <ClInclude Include="..\..\source\mapGeneration\CellManager.h" />
     <ClInclude Include="..\..\source\mapGeneration\CellManager_ScriptBinding.h" />
+    <ClInclude Include="..\..\source\mapGeneration\FoliageSystem.h" />
+    <ClInclude Include="..\..\source\mapGeneration\FoliageSystem_ScriptBinding.h" />
     <ClInclude Include="..\..\source\mapGeneration\MapGeneration.h" />
     <ClInclude Include="..\..\source\mapGeneration\MapGeneration_ScriptBinding.h" />
     <ClInclude Include="..\..\source\math\box_ScriptBinding.h" />
